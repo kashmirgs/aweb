@@ -22,6 +22,7 @@ export function MessageList() {
   if (isSending && streamingContent) {
     const streamingMessage: Message = {
       role: 'assistant',
+      sender_role: 'assistant',
       content: streamingContent,
     };
     displayMessages.push(streamingMessage);

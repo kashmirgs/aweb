@@ -119,6 +119,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     // Add user message immediately
     const userMessage: Message = {
       role: 'user',
+      sender_role: 'user',
       content,
       chat_history_id: chatHistoryId,
     };
@@ -147,6 +148,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         // Complete - add assistant message
         const assistantMessage: Message = {
           role: 'assistant',
+          sender_role: 'assistant',
           content: fullContent,
           chat_history_id: chatHistoryId,
         };
