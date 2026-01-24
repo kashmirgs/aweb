@@ -4,9 +4,11 @@ import { MessageInput } from './MessageInput';
 import { ConversationStarters } from './ConversationStarters';
 
 export function ChatContainer() {
-  const { currentConversation, messages } = useChatStore();
+  const { currentConversation, messages, isSending, streamingContent } = useChatStore();
 
-  const showStarters = !currentConversation || messages.length === 0;
+  // Show starters only when no conversation is active and no messages
+  const hasActiveChat = currentConversation || messages.length > 0 || isSending || streamingContent;
+  const showStarters = !hasActiveChat;
 
   return (
     <div className="flex-1 flex flex-col bg-white overflow-hidden">

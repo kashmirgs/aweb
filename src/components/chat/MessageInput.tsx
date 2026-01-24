@@ -28,13 +28,15 @@ export function MessageInput() {
     setInput('');
 
     // Create conversation if needed
+    let conversationId = currentConversation?.id;
     if (!currentConversation) {
       const title = content.slice(0, 50) + (content.length > 50 ? '...' : '');
       const conversation = await createConversation(title, selectedAgent.id);
       if (!conversation) return;
+      conversationId = conversation.id;
     }
 
-    await sendMessage(content);
+    await sendMessage(content, conversationId);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {

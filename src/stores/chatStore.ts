@@ -15,7 +15,7 @@ interface ChatState {
   selectConversation: (conversation: Conversation | null) => Promise<void>;
   createConversation: (title: string, botId: number) => Promise<Conversation | null>;
   deleteConversation: (id: number) => Promise<void>;
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, conversationId?: number) => Promise<void>;
   clearCurrentConversation: () => void;
 }
 
@@ -94,15 +94,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
   },
 
-  sendMessage: async (content: string) => {
+  sendMessage: async (content: string, conversationId?: number) => {
     const { currentConversation } = get();
-    if (!currentConversation) return;
+    const chatHistoryId = conversationId || currentConversation?.id;
+    if (!chatHistoryId) return;
 
     // Add user message immediately
     const userMessage: Message = {
       role: 'user',
       content,
-      chat_history_id: currentConversation.id,
+      chat_history_id: chatHistoryId,
     };
 
     set((state) => ({
@@ -117,7 +118,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     await chatApi.sendMessage(
       {
         content,
-        chat_history_id: currentConversation.id,
+        chat_history_id: chatHistoryId,
         streaming: true,
       },
       (chunk) => {
@@ -129,7 +130,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         const assistantMessage: Message = {
           role: 'assistant',
           content: fullContent,
-          chat_history_id: currentConversation.id,
+          chat_history_id: chatHistoryId,
         };
         set((state) => ({
           messages: [...state.messages, assistantMessage],
