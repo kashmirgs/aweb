@@ -11,13 +11,15 @@ export function ConversationStarters() {
     if (!selectedAgent) return;
 
     // Create conversation first if needed
+    let conversationId = currentConversation?.id;
     if (!currentConversation) {
       const title = prompt.slice(0, 50) + (prompt.length > 50 ? '...' : '');
       const conversation = await createConversation(title, selectedAgent.id);
       if (!conversation) return;
+      conversationId = conversation.id;
     }
 
-    await sendMessage(prompt);
+    await sendMessage(prompt, conversationId);
   };
 
   if (!selectedAgent) {

@@ -13,8 +13,14 @@ export const conversationsApi = {
   },
 
   async create(data: CreateConversationRequest): Promise<Conversation> {
-    const response = await apiClient.post<Conversation>('/chat_history', data);
-    return response.data;
+    const response = await apiClient.post<{ chat_history_id: number; title: string; bot_id?: number; created_at?: string }>('/chat_history', data);
+    // API returns chat_history_id, map to id for consistency
+    return {
+      id: response.data.chat_history_id,
+      title: response.data.title,
+      bot_id: data.bot_id,
+      created_at: response.data.created_at || new Date().toISOString(),
+    };
   },
 
   async delete(id: number): Promise<void> {

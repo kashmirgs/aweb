@@ -97,7 +97,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
   sendMessage: async (content: string, conversationId?: number) => {
     const { currentConversation } = get();
     const chatHistoryId = conversationId || currentConversation?.id;
-    if (!chatHistoryId) return;
+    if (!chatHistoryId) {
+      return;
+    }
 
     // Add user message immediately
     const userMessage: Message = {
