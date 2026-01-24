@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Conversation, Message } from '../types';
 import { conversationsApi, chatApi } from '../api';
+import { useAgentStore } from './agentStore';
 
 interface ChatState {
   conversations: Conversation[];
@@ -52,9 +53,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const fullConversation = await conversationsApi.get(conversation.id);
+      // Sort messages by id ascending (oldest first)
+      const sortedMessages = (fullConversation.messages || []).sort((a, b) => {
+        if (a.id && b.id) {
+          return a.id - b.id;
+        }
+        if (a.created_at && b.created_at) {
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        }
+        return 0;
+      });
       set({
         currentConversation: fullConversation,
-        messages: fullConversation.messages || [],
+        messages: sortedMessages,
         isLoading: false,
       });
     } catch (error: unknown) {
@@ -101,6 +112,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return;
     }
 
+    // Get bot_id from current conversation or selected agent
+    const selectedAgent = useAgentStore.getState().selectedAgent;
+    const botId = currentConversation?.bot_id || selectedAgent?.id;
+
     // Add user message immediately
     const userMessage: Message = {
       role: 'user',
@@ -121,6 +136,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       {
         content,
         chat_history_id: chatHistoryId,
+        bot_id: botId,
         streaming: true,
       },
       (chunk) => {

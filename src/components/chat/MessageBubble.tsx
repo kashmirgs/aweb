@@ -33,7 +33,8 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [isThinkingExpanded, setIsThinkingExpanded] = useState(false);
 
-  const isUser = message.role === 'user';
+  const role = message.role || message.sender_role;
+  const isUser = role === 'user';
   const { thinking, response } = isUser ? { thinking: null, response: message.content } : parseContent(message.content);
 
   const copyToClipboard = (code: string) => {

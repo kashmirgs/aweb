@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { Sidebar } from '../sidebar';
 import { Header } from './Header';
@@ -10,7 +10,8 @@ export function AppLayout() {
   const navigate = useNavigate();
   const { isAuthenticated, checkAuth, user } = useAuthStore();
   const { fetchAgents } = useAgentStore();
-  const { fetchConversations } = useChatStore();
+  const { fetchConversations, conversations, currentConversation, selectConversation } = useChatStore();
+  const hasAutoSelected = useRef(false);
 
   // Check auth on mount
   useEffect(() => {
@@ -39,6 +40,14 @@ export function AppLayout() {
     }
   }, [isAuthenticated, user, fetchAgents, fetchConversations]);
 
+  // Auto-select the most recent conversation on first load only
+  useEffect(() => {
+    if (conversations.length > 0 && !currentConversation && !hasAutoSelected.current) {
+      hasAutoSelected.current = true;
+      selectConversation(conversations[0]);
+    }
+  }, [conversations, currentConversation, selectConversation]);
+
   // Show loading only during initial auth check
   if (isChecking) {
     return (
@@ -59,7 +68,7 @@ export function AppLayout() {
 
       <div className="flex-1 flex flex-col min-w-0">
         <Header />
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden">
           <Outlet />
         </main>
       </div>

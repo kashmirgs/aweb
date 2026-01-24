@@ -1,4 +1,4 @@
-import { useChatStore, useAgentStore } from '../../stores';
+import { useChatStore } from '../../stores';
 import { groupConversationsByDate, cn, truncate } from '../../lib/utils';
 import { MessageSquare, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -11,13 +11,10 @@ export function ConversationList() {
     deleteConversation,
     isLoading,
   } = useChatStore();
-  const { selectedAgent } = useAgentStore();
   const [hoveredId, setHoveredId] = useState<number | null>(null);
 
-  // Filter conversations by selected agent
-  const filteredConversations = selectedAgent
-    ? conversations.filter((c) => c.bot_id === selectedAgent.id)
-    : conversations;
+  // Show all conversations (no agent filtering)
+  const filteredConversations = conversations;
 
   const groupedConversations = groupConversationsByDate(filteredConversations);
 

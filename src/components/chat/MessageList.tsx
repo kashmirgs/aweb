@@ -12,8 +12,13 @@ export function MessageList() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, streamingContent]);
 
-  // Create a temporary streaming message if we're receiving content
-  const displayMessages = [...messages];
+  // Filter out system messages (check both role and sender_role for API compatibility)
+  const filteredMessages = messages.filter((m) => {
+    const role = m.role || m.sender_role;
+    return role !== 'system';
+  });
+
+  const displayMessages = [...filteredMessages];
   if (isSending && streamingContent) {
     const streamingMessage: Message = {
       role: 'assistant',
@@ -23,7 +28,7 @@ export function MessageList() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 md:px-8">
+    <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-8">
       <div className="max-w-3xl mx-auto">
         {displayMessages.map((message, index) => (
           <MessageBubble
@@ -32,7 +37,7 @@ export function MessageList() {
             isStreaming={
               isSending &&
               index === displayMessages.length - 1 &&
-              message.role === 'assistant'
+              (message.role === 'assistant' || message.sender_role === 'assistant')
             }
           />
         ))}

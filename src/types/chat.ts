@@ -1,9 +1,11 @@
 export interface Message {
   id?: number;
-  role: 'user' | 'assistant';
+  role?: 'user' | 'assistant' | 'system';
+  sender_role?: 'user' | 'assistant' | 'system';
   content: string;
   chat_history_id?: number;
   created_at?: string;
+  bot_reply?: boolean;
 }
 
 export interface Conversation {
@@ -24,5 +26,6 @@ export interface CreateConversationRequest {
 export interface SendMessageRequest {
   content: string;
   chat_history_id: number;
+  bot_id?: number;
   streaming?: boolean;
 }
