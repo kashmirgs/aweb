@@ -7,7 +7,8 @@ export const chatApi = {
     data: SendMessageRequest,
     onChunk: (chunk: string) => void,
     onComplete: () => void,
-    onError: (error: Error) => void
+    onError: (error: Error) => void,
+    abortSignal?: AbortSignal
   ): Promise<void> {
     const token = localStorage.getItem('access_token');
 
@@ -22,6 +23,7 @@ export const chatApi = {
           ...data,
           streaming: true,
         }),
+        signal: abortSignal,
       });
 
       if (!response.ok) {
@@ -75,6 +77,11 @@ export const chatApi = {
         }
       }
     } catch (error) {
+      // Don't report abort as an error
+      if (error instanceof Error && error.name === 'AbortError') {
+        onComplete();
+        return;
+      }
       onError(error instanceof Error ? error : new Error('Unknown error'));
     }
   },

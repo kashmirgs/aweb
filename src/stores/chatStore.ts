@@ -11,12 +11,14 @@ interface ChatState {
   isSending: boolean;
   streamingContent: string;
   error: string | null;
+  abortController: AbortController | null;
 
   fetchConversations: () => Promise<void>;
   selectConversation: (conversation: Conversation | null) => Promise<void>;
   createConversation: (title: string, botId: number) => Promise<Conversation | null>;
   deleteConversation: (id: number) => Promise<void>;
   sendMessage: (content: string, conversationId?: number) => Promise<void>;
+  stopStreaming: () => void;
   clearCurrentConversation: () => void;
 }
 
@@ -28,6 +30,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isSending: false,
   streamingContent: '',
   error: null,
+  abortController: null,
 
   fetchConversations: async () => {
     set({ isLoading: true, error: null });
@@ -124,11 +127,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
       chat_history_id: chatHistoryId,
     };
 
+    const abortController = new AbortController();
+
     set((state) => ({
       messages: [...state.messages, userMessage],
       isSending: true,
       streamingContent: '',
       error: null,
+      abortController,
     }));
 
     let fullContent = '';
@@ -145,27 +151,67 @@ export const useChatStore = create<ChatState>((set, get) => ({
         set({ streamingContent: fullContent });
       },
       () => {
-        // Complete - add assistant message
-        const assistantMessage: Message = {
-          role: 'assistant',
-          sender_role: 'assistant',
-          content: fullContent,
-          chat_history_id: chatHistoryId,
-        };
-        set((state) => ({
-          messages: [...state.messages, assistantMessage],
-          isSending: false,
-          streamingContent: '',
-        }));
+        // Complete - add assistant message if we have content
+        if (fullContent) {
+          const assistantMessage: Message = {
+            role: 'assistant',
+            sender_role: 'assistant',
+            content: fullContent,
+            chat_history_id: chatHistoryId,
+          };
+          set((state) => ({
+            messages: [...state.messages, assistantMessage],
+            isSending: false,
+            streamingContent: '',
+            abortController: null,
+          }));
+        } else {
+          set({
+            isSending: false,
+            streamingContent: '',
+            abortController: null,
+          });
+        }
       },
       (error) => {
         set({
           error: error.message,
           isSending: false,
           streamingContent: '',
+          abortController: null,
         });
-      }
+      },
+      abortController.signal
     );
+  },
+
+  stopStreaming: () => {
+    const { abortController, streamingContent, messages } = get();
+    if (abortController) {
+      abortController.abort();
+    }
+    // If we have partial content, save it as a message
+    if (streamingContent) {
+      const currentConversation = get().currentConversation;
+      const assistantMessage: Message = {
+        role: 'assistant',
+        sender_role: 'assistant',
+        content: streamingContent,
+        chat_history_id: currentConversation?.id,
+      };
+      set({
+        messages: [...messages, assistantMessage],
+        isSending: false,
+        streamingContent: '',
+        abortController: null,
+      });
+    } else {
+      set({
+        isSending: false,
+        streamingContent: '',
+        abortController: null,
+      });
+    }
   },
 
   clearCurrentConversation: () => {

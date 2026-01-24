@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect, type KeyboardEvent, type FormEvent } from 'react';
 import { useChatStore, useAgentStore } from '../../stores';
-import { Send } from 'lucide-react';
+import { Send, Square } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 export function MessageInput() {
   const [input, setInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { sendMessage, isSending, currentConversation, createConversation } = useChatStore();
+  const { sendMessage, isSending, currentConversation, createConversation, stopStreaming } = useChatStore();
   const { selectedAgent } = useAgentStore();
 
   // Auto-resize textarea
@@ -51,7 +51,7 @@ export function MessageInput() {
   return (
     <div className="border-t border-gray-200 bg-white px-4 md:px-8 py-4">
       <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-        <div className="relative flex items-end gap-2 bg-gray-100 rounded-2xl p-2">
+        <div className="relative flex items-center gap-2 bg-gray-100 rounded-2xl p-2">
           <textarea
             ref={textareaRef}
             value={input}
@@ -73,16 +73,23 @@ export function MessageInput() {
             rows={1}
           />
           <button
-            type="submit"
-            disabled={isDisabled}
+            type={isSending ? 'button' : 'submit'}
+            onClick={isSending ? stopStreaming : undefined}
+            disabled={!isSending && isDisabled}
             className={cn(
               'p-2.5 rounded-xl transition-colors',
-              isDisabled
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-primary text-white hover:bg-primary-600'
+              isSending
+                ? 'bg-primary text-white hover:bg-primary-600'
+                : isDisabled
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-primary text-white hover:bg-primary-600'
             )}
           >
-            <Send className="h-5 w-5" />
+            {isSending ? (
+              <Square className="h-5 w-5" />
+            ) : (
+              <Send className="h-5 w-5" />
+            )}
           </button>
         </div>
         <p className="text-xs text-gray-400 text-center mt-2">
