@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+/* Custom theme colors */
+@theme {
+  --color-primary-50: #f5f5fa;
+  --color-primary-100: #ebeaf5;
+  --color-primary-200: #d6d4eb;
+  --color-primary-300: #b8b5d9;
+  --color-primary-400: #9591c4;
+  --color-primary-500: #7e79b8;
+  --color-primary-600: #6b65a3;
+  --color-primary-700: #5a5488;
+  --color-primary-800: #4a4670;
+  --color-primary-900: #3e3b5c;
+  --color-primary: #7e79b8;
+
+  --color-accent-50: #fdf2f8;
+  --color-accent-100: #fce7f3;
+  --color-accent-200: #fbcfe8;
+  --color-accent-300: #f9a8d4;
+  --color-accent-400: #f472b6;
+  --color-accent-500: #e55fa2;
+  --color-accent-600: #db2777;
+  --color-accent-700: #be185d;
+  --color-accent-800: #9d174d;
+  --color-accent-900: #831843;
+  --color-accent: #e55fa2;
+
+  --color-dark-50: #f6f6f6;
+  --color-dark-100: #e7e7e7;
+  --color-dark-200: #d1d1d1;
+  --color-dark-300: #b0b0b0;
+  --color-dark-400: #888888;
+  --color-dark-500: #6d6d6d;
+  --color-dark-600: #5d5d5d;
+  --color-dark-700: #4f4f4f;
+  --color-dark-800: #454545;
+  --color-dark-900: #333333;
+  --color-dark: #333333;
+}
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-dark-900 m-0;
+  }
+
+  #root {
+    @apply min-h-screen w-full;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white px-4 py-2 rounded-lg font-medium
+           hover:bg-primary-600 transition-colors duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 text-dark px-4 py-2 rounded-lg font-medium
+           hover:bg-gray-300 transition-colors duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2 border border-gray-300 rounded-lg
+           focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+           transition-all duration-200;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Prose customization for markdown */
+.prose pre {
+  @apply bg-gray-900 rounded-lg;
+}
+
+.prose code {
+  @apply bg-gray-100 px-1 py-0.5 rounded text-sm;
+}
+
+.prose pre code {
+  @apply bg-transparent p-0;
+}
