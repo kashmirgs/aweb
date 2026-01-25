@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { Logo, Button } from '../common';
-import { AgentSelector } from './AgentSelector';
 import { ConversationList } from './ConversationList';
 import { useChatStore, useAgentStore } from '../../stores';
 import { Plus, PanelLeftClose, PanelLeft } from 'lucide-react';
@@ -59,13 +58,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             </button>
           </div>
 
-          {/* Agent Selector */}
-          <AgentSelector />
-
           {/* New Chat Button */}
           <Button
             onClick={handleNewChat}
-            className="w-full mt-3"
+            className="w-full"
             variant="primary"
             disabled={!selectedAgent}
           >
