@@ -1,9 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuthStore, useAgentStore } from '../../stores';
 import { Avatar } from '../common';
-import { LogOut, ChevronDown } from 'lucide-react';
+import { LogOut, ChevronDown, PanelLeft } from 'lucide-react';
 
-export function Header() {
+interface HeaderProps {
+  sidebarOpen?: boolean;
+  onToggleSidebar?: () => void;
+}
+
+export function Header({ sidebarOpen = true, onToggleSidebar }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { user, logout } = useAuthStore();
@@ -22,8 +27,20 @@ export function Header() {
 
   return (
     <header className="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-4">
-      {/* Current Agent */}
+      {/* Left section with toggle and agent */}
       <div className="flex items-center gap-3">
+        {/* Toggle button when sidebar is closed */}
+        {!sidebarOpen && onToggleSidebar && (
+          <button
+            onClick={onToggleSidebar}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            title="Open sidebar"
+          >
+            <PanelLeft className="h-5 w-5 text-gray-600" />
+          </button>
+        )}
+
+        {/* Current Agent */}
         {selectedAgent && (
           <>
             <Avatar
