@@ -19,14 +19,14 @@ export function HomePage() {
   const displayName = user?.name || user?.username || 'there';
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-6 overflow-auto">
-      <div className="w-full max-w-2xl">
+    <div className="flex-1 flex flex-col items-center p-6 overflow-auto">
+      <div className="w-full max-w-2xl my-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-dark mb-2">
-            Hi, {displayName}
+            Merhaba,
           </h1>
           <p className="text-gray-500">
-            Start chatting by selecting the agent you want to get support from.
+            Destek almak istediğiniz ajanı seçerek sohbete başlayın.
           </p>
         </div>
 

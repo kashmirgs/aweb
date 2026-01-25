@@ -3,7 +3,11 @@ import { useChatStore, useAgentStore } from '../../stores';
 import { Send, Square } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
-export function MessageInput() {
+interface MessageInputProps {
+  variant?: 'default' | 'centered';
+}
+
+export function MessageInput({ variant = 'default' }: MessageInputProps) {
   const [input, setInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { sendMessage, isSending, currentConversation, createConversation, stopStreaming } = useChatStore();
@@ -49,7 +53,10 @@ export function MessageInput() {
   const isDisabled = !selectedAgent || isSending || !input.trim();
 
   return (
-    <div className="border-t border-gray-200 bg-white px-4 md:px-8 py-4">
+    <div className={cn(
+      'bg-white px-4 md:px-8 py-4',
+      variant === 'default' && 'border-t border-gray-200'
+    )}>
       <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
         <div className="relative flex items-center gap-2 bg-gray-100 rounded-2xl p-2">
           <textarea
