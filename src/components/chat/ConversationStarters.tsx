@@ -2,6 +2,7 @@ import { useAgentStore, useChatStore } from '../../stores';
 import { Avatar } from '../common';
 import { Sparkles } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import type { ConversationStarter } from '../../types';
 
 export function ConversationStarters() {
   const { selectedAgent, starters, getAgentImageUrl } = useAgentStore();
@@ -62,7 +63,7 @@ export function ConversationStarters() {
             Try asking
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
-            {starters.map((starter) => (
+            {starters.map((starter: ConversationStarter) => (
               <button
                 key={starter.id}
                 onClick={() => handleStarterClick(starter.prompt)}

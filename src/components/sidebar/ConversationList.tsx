@@ -1,9 +1,12 @@
-import { useChatStore } from '../../stores';
+import { useNavigate } from 'react-router-dom';
+import { useChatStore, useAgentStore } from '../../stores';
 import { groupConversationsByDate, cn, truncate } from '../../lib/utils';
 import { MessageSquare, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import type { Conversation } from '../../types';
 
 export function ConversationList() {
+  const navigate = useNavigate();
   const {
     conversations,
     currentConversation,
@@ -11,7 +14,18 @@ export function ConversationList() {
     deleteConversation,
     isLoading,
   } = useChatStore();
+  const { selectAgent, getAgentById } = useAgentStore();
   const [hoveredId, setHoveredId] = useState<number | null>(null);
+
+  const handleConversationClick = (conversation: Conversation) => {
+    selectConversation(conversation);
+    // Find and select the corresponding agent
+    const agent = getAgentById(conversation.bot_id);
+    if (agent) {
+      selectAgent(agent);
+    }
+    navigate('/chat');
+  };
 
   // Show all conversations (no agent filtering)
   const filteredConversations = conversations;
@@ -54,7 +68,7 @@ export function ConversationList() {
                 onMouseLeave={() => setHoveredId(null)}
               >
                 <button
-                  onClick={() => selectConversation(conversation)}
+                  onClick={() => handleConversationClick(conversation)}
                   className={cn(
                     'w-full text-left px-3 py-2.5 rounded-lg transition-colors',
                     'hover:bg-gray-100',

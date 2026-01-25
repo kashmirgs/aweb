@@ -13,9 +13,11 @@ interface AgentState {
   selectAgent: (agent: Agent | null) => void;
   fetchStarters: (agentId: number) => Promise<void>;
   getAgentImageUrl: (agentId: number) => string;
+  getInteractiveAgents: () => Agent[];
+  getAgentById: (id: number) => Agent | undefined;
 }
 
-export const useAgentStore = create<AgentState>((set) => ({
+export const useAgentStore = create<AgentState>((set, get) => ({
   agents: [],
   selectedAgent: null,
   starters: [],
@@ -27,12 +29,6 @@ export const useAgentStore = create<AgentState>((set) => ({
     try {
       const agents = await agentsApi.list();
       set({ agents, isLoading: false });
-
-      // Auto-select first agent if none selected
-      if (agents.length > 0) {
-        const starters = await agentsApi.getStarters(agents[0].id);
-        set({ selectedAgent: agents[0], starters });
-      }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to fetch agents';
       set({ error: message, isLoading: false });
@@ -59,6 +55,14 @@ export const useAgentStore = create<AgentState>((set) => ({
 
   getAgentImageUrl: (agentId: number) => {
     return agentsApi.getImageUrl(agentId);
+  },
+
+  getInteractiveAgents: (): Agent[] => {
+    return get().agents.filter((agent: Agent) => agent.interactive !== false);
+  },
+
+  getAgentById: (id: number): Agent | undefined => {
+    return get().agents.find((agent: Agent) => agent.id === id);
   },
 }));
 

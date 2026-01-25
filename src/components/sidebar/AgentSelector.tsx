@@ -3,6 +3,7 @@ import { useAgentStore } from '../../stores';
 import { Avatar } from '../common';
 import { ChevronDown, Check } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import type { Agent } from '../../types';
 
 export function AgentSelector() {
   const [isOpen, setIsOpen] = useState(false);
@@ -59,7 +60,7 @@ export function AgentSelector() {
 
       {isOpen && (
         <div className="absolute left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 max-h-64 overflow-y-auto">
-          {agents.map((agent) => (
+          {agents.map((agent: Agent) => (
             <button
               key={agent.id}
               onClick={() => {

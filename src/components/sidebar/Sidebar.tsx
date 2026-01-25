@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Logo, Button } from '../common';
 import { AgentSelector } from './AgentSelector';
 import { ConversationList } from './ConversationList';
@@ -42,11 +43,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         {/* Header */}
         <div className="p-4 border-b border-gray-100">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
+            <Link
+              to="/"
+              className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+            >
               <div className="p-1.5 bg-dark rounded-lg">
                 <Logo variant="light" className="h-5" />
               </div>
-            </div>
+            </Link>
             <button
               onClick={onToggle}
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors lg:hidden"
