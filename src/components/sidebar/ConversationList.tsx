@@ -14,17 +14,40 @@ export function ConversationList() {
     deleteConversation,
     isLoading,
   } = useChatStore();
-  const { selectAgent, getAgentById } = useAgentStore();
+  const { selectAgent, getAgentById, fetchAgents } = useAgentStore();
   const [hoveredId, setHoveredId] = useState<number | null>(null);
 
-  const handleConversationClick = (conversation: Conversation) => {
-    selectConversation(conversation);
-    // Find and select the corresponding agent
-    const agent = getAgentById(conversation.bot_id);
+  const handleConversationClick = async (conversation: Conversation) => {
+    // selectConversation fetches the full conversation with bot_id
+    await selectConversation(conversation);
+
+    // Get the full conversation from the store (includes bot_id from API)
+    const fullConversation = useChatStore.getState().currentConversation;
+    const botId = fullConversation?.bot_id || conversation.bot_id;
+
+    if (!botId) {
+      return;
+    }
+
+    // Find the corresponding agent
+    let agent = getAgentById(botId);
+
+    // If agent not found, agents might not be loaded yet - fetch and retry
+    if (!agent) {
+      await fetchAgents();
+      agent = getAgentById(botId);
+    }
+
     if (agent) {
       selectAgent(agent);
+      // Route state ile navigate et - race condition'ı önlemek için
+      navigate('/chat', {
+        state: {
+          conversationId: conversation.id,
+          agentId: agent.id
+        }
+      });
     }
-    navigate('/chat');
   };
 
   // Show all conversations (no agent filtering)
