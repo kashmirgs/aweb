@@ -15,8 +15,7 @@ export const agentsApi = {
   },
 
   getImageUrl(id: number): string {
-    const token = localStorage.getItem('access_token');
-    return `${API_BASE_URL}/chatbot/${id}/image?token=${token}`;
+    return `${API_BASE_URL}/chatbot/${id}/image`;
   },
 
   async getStarters(chatbotId: number): Promise<ConversationStarter[]> {
