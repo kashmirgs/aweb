@@ -1,7 +1,6 @@
 import apiClient from './client';
 import type { Agent, ConversationStarter, AgentCreateRequest, AgentUpdateRequest, AgentFile } from '../types';
-
-const API_BASE_URL = 'http://10.10.0.149:3000';
+import { API_BASE_URL } from '../config/api';
 
 export const agentsApi = {
   async list(): Promise<Agent[]> {
@@ -62,6 +61,10 @@ export const agentsApi = {
 
   async deleteFile(_chatbotId: number, fileId: number): Promise<void> {
     await apiClient.delete(`/files/${fileId}`);
+  },
+
+  async buildIndex(chatbotId: number): Promise<void> {
+    await apiClient.post('/chatbot/build_index', { chatbot_id: chatbotId });
   },
 
   // Conversation starters

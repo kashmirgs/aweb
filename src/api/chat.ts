@@ -1,6 +1,5 @@
 import type { SendMessageRequest } from '../types';
-
-const API_BASE_URL = 'http://10.10.0.149:3000';
+import { API_BASE_URL } from '../config/api';
 
 export const chatApi = {
   async sendMessage(

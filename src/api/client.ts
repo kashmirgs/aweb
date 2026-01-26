@@ -1,6 +1,5 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
-
-const API_BASE_URL = 'http://10.10.0.149:3000';
+import { API_BASE_URL } from '../config/api';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
