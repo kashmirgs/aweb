@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Conversation, Message } from '../types';
+import type { Conversation, Message, MessageAttachment } from '../types';
 import { conversationsApi, chatApi } from '../api';
 import { useAgentStore } from './agentStore';
 
@@ -17,7 +17,7 @@ interface ChatState {
   selectConversation: (conversation: Conversation | null) => Promise<void>;
   createConversation: (title: string, botId: number) => Promise<Conversation | null>;
   deleteConversation: (id: number) => Promise<void>;
-  sendMessage: (content: string, conversationId?: number) => Promise<void>;
+  sendMessage: (content: string, conversationId?: number, attachedContent?: string, attachments?: MessageAttachment[]) => Promise<void>;
   stopStreaming: () => void;
   clearCurrentConversation: () => void;
 }
@@ -108,7 +108,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
   },
 
-  sendMessage: async (content: string, conversationId?: number) => {
+  sendMessage: async (content: string, conversationId?: number, attachedContent?: string, attachments?: MessageAttachment[]) => {
     const { currentConversation } = get();
     const chatHistoryId = conversationId || currentConversation?.id;
     if (!chatHistoryId) {
@@ -119,12 +119,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const selectedAgent = useAgentStore.getState().selectedAgent;
     const botId = currentConversation?.bot_id || selectedAgent?.id;
 
-    // Add user message immediately
+    // Combine user message with attached content for LLM
+    const contentForLLM = attachedContent
+      ? `${attachedContent}\n\n---\n\n${content}`
+      : content;
+
+    // Add user message immediately (display version - without file content)
     const userMessage: Message = {
       role: 'user',
       sender_role: 'user',
       content,
       chat_history_id: chatHistoryId,
+      attachments,
     };
 
     const abortController = new AbortController();
@@ -141,7 +147,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     await chatApi.sendMessage(
       {
-        content,
+        content: contentForLLM,
         chat_history_id: chatHistoryId,
         bot_id: botId,
         streaming: true,

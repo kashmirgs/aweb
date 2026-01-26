@@ -1,3 +1,5 @@
+import type { MessageAttachment } from './attachment';
+
 export interface Message {
   id?: number;
   role?: 'user' | 'assistant' | 'system';
@@ -6,6 +8,7 @@ export interface Message {
   chat_history_id?: number;
   created_at?: string;
   bot_reply?: boolean;
+  attachments?: MessageAttachment[];
 }
 
 export interface Conversation {

@@ -1,16 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar } from '../sidebar';
 import { Header } from './Header';
-import { useAuthStore, useAgentStore, useChatStore } from '../../stores';
+import { useAuthStore, useAgentStore, useChatStore, usePermissionStore } from '../../stores';
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isChecking, setIsChecking] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, checkAuth, user } = useAuthStore();
   const { fetchAgents } = useAgentStore();
   const { fetchConversations } = useChatStore();
+  const { fetchPermissions, permissions } = usePermissionStore();
+
+  const isSettingsPage = location.pathname.startsWith('/settings');
 
   // Check auth on mount
   useEffect(() => {
@@ -36,8 +40,11 @@ export function AppLayout() {
     if (isAuthenticated && user) {
       fetchAgents();
       fetchConversations();
+      if (!permissions) {
+        fetchPermissions();
+      }
     }
-  }, [isAuthenticated, user, fetchAgents, fetchConversations]);
+  }, [isAuthenticated, user, fetchAgents, fetchConversations, fetchPermissions, permissions]);
 
   // Show loading only during initial auth check
   if (isChecking) {
@@ -55,10 +62,18 @@ export function AppLayout() {
 
   return (
     <div className="h-screen flex overflow-hidden bg-gray-50">
-      <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+      <Sidebar
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
+        mode={isSettingsPage ? 'settings' : 'chat'}
+      />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <Header sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+        <Header
+          sidebarOpen={sidebarOpen}
+          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          hideAgentInfo={isSettingsPage}
+        />
         <main className="flex-1 flex flex-col overflow-hidden">
           <Outlet />
         </main>

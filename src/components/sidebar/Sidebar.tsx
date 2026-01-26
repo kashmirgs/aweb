@@ -1,18 +1,20 @@
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { Logo, Button } from '../common';
 import { ConversationList } from './ConversationList';
-import { useChatStore, useAgentStore } from '../../stores';
-import { Plus, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { useChatStore, useAgentStore, usePermissionStore } from '../../stores';
+import { Plus, PanelLeftClose, Bot, Cpu } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
+  mode?: 'chat' | 'settings';
 }
 
-export function Sidebar({ isOpen, onToggle }: SidebarProps) {
+export function Sidebar({ isOpen, onToggle, mode = 'chat' }: SidebarProps) {
   const { clearCurrentConversation } = useChatStore();
   const { selectedAgent } = useAgentStore();
+  const { isSuperAdmin } = usePermissionStore();
 
   const handleNewChat = () => {
     clearCurrentConversation();
@@ -59,20 +61,59 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               </button>
             </div>
 
-            {/* New Chat Button */}
-            <Button
-              onClick={handleNewChat}
-              className="w-full"
-              variant="primary"
-              disabled={!selectedAgent}
-            >
-              <Plus className="h-4 w-4" />
-              New Chat
-            </Button>
+            {mode === 'chat' && (
+              <Button
+                onClick={handleNewChat}
+                className="w-full"
+                variant="primary"
+                disabled={!selectedAgent}
+              >
+                <Plus className="h-4 w-4" />
+                New Chat
+              </Button>
+            )}
           </div>
 
-          {/* Conversations */}
-          <ConversationList />
+          {/* Content based on mode */}
+          {mode === 'chat' ? (
+            <ConversationList />
+          ) : (
+            <div className="flex-1 overflow-auto p-4">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Ayarlar</h2>
+              <nav className="space-y-1">
+                <NavLink
+                  to="/settings/agents"
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-primary-50 text-primary'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    )
+                  }
+                >
+                  <Bot className="h-5 w-5" />
+                  Ajanlar
+                </NavLink>
+                {isSuperAdmin() && (
+                  <NavLink
+                    to="/settings/models"
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                        isActive
+                          ? 'bg-primary-50 text-primary'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      )
+                    }
+                  >
+                    <Cpu className="h-5 w-5" />
+                    Model Yonetimi
+                  </NavLink>
+                )}
+              </nav>
+            </div>
+          )}
         </div>
       </aside>
     </>

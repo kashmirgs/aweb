@@ -1,3 +1,10 @@
 export { Logo } from './Logo';
 export { Button } from './Button';
 export { Avatar } from './Avatar';
+export { Badge } from './Badge';
+export { Toggle } from './Toggle';
+export { Tabs } from './Tabs';
+export type { Tab } from './Tabs';
+export { Table, Pagination } from './Table';
+export type { Column } from './Table';
+export { Modal, ConfirmModal } from './Modal';

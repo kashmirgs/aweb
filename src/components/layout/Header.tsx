@@ -1,16 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore, useAgentStore } from '../../stores';
 import { Avatar } from '../common';
-import { LogOut, ChevronDown, PanelLeft } from 'lucide-react';
+import { LogOut, ChevronDown, PanelLeft, Settings } from 'lucide-react';
 
 interface HeaderProps {
   sidebarOpen?: boolean;
   onToggleSidebar?: () => void;
+  hideAgentInfo?: boolean;
 }
 
-export function Header({ sidebarOpen = true, onToggleSidebar }: HeaderProps) {
+export function Header({ sidebarOpen = true, onToggleSidebar, hideAgentInfo = false }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const { selectedAgent, getAgentImageUrl } = useAgentStore();
 
@@ -40,8 +43,8 @@ export function Header({ sidebarOpen = true, onToggleSidebar }: HeaderProps) {
           </button>
         )}
 
-        {/* Current Agent */}
-        {selectedAgent && (
+        {/* Current Agent - hidden on settings pages */}
+        {!hideAgentInfo && selectedAgent && (
           <>
             <Avatar
               src={getAgentImageUrl(selectedAgent.id)}
@@ -89,12 +92,23 @@ export function Header({ sidebarOpen = true, onToggleSidebar }: HeaderProps) {
             <button
               onClick={() => {
                 setIsMenuOpen(false);
+                navigate('/settings');
+              }}
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <Settings className="h-4 w-4" />
+              Ayarlar
+            </button>
+
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
                 logout();
               }}
               className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
             >
               <LogOut className="h-4 w-4" />
-              Sign Out
+              Çıkış Yap
             </button>
           </div>
         )}

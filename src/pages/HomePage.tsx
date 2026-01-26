@@ -5,7 +5,7 @@ import type { Agent } from '../types';
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  useAuthStore();
   const { agents, selectAgent, getAgentImageUrl } = useAgentStore();
 
   // Filter to show only interactive agents
@@ -15,8 +15,6 @@ export function HomePage() {
     selectAgent(agent);
     navigate('/chat');
   };
-
-  const displayName = user?.name || user?.username || 'there';
 
   return (
     <div className="flex-1 flex flex-col items-center p-6 overflow-auto">

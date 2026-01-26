@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect, type KeyboardEvent, type FormEvent } from 'react';
-import { useChatStore, useAgentStore } from '../../stores';
+import { useChatStore, useAgentStore, useAttachmentStore } from '../../stores';
 import { Send, Square } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { FileAttachmentButton } from './FileAttachmentButton';
+import { AttachmentList } from './AttachmentList';
 
 interface MessageInputProps {
   variant?: 'default' | 'centered';
@@ -12,6 +14,17 @@ export function MessageInput({ variant = 'default' }: MessageInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { sendMessage, isSending, currentConversation, createConversation, stopStreaming } = useChatStore();
   const { selectedAgent } = useAgentStore();
+  const {
+    attachments,
+    getAttachedContent,
+    getAttachmentMetadata,
+    clearAttachments,
+    validateTotalSize,
+    isProcessing,
+    error: _attachmentError,
+  } = useAttachmentStore();
+
+  const maxToken = selectedAgent?.llm_settings?.max_token || 128000;
 
   // Auto-resize textarea
   useEffect(() => {
@@ -29,7 +42,26 @@ export function MessageInput({ variant = 'default' }: MessageInputProps) {
     const content = input.trim();
     if (!content || isSending || !selectedAgent) return;
 
+    // Validate token limit
+    const validation = validateTotalSize(maxToken);
+    if (!validation.valid) {
+      return;
+    }
+
+    // Check if any attachment is still processing
+    const hasProcessing = attachments.some((a) => a.status === 'parsing' || a.status === 'pending');
+    if (hasProcessing) {
+      return;
+    }
+
     setInput('');
+
+    // Get attachment data before clearing
+    const attachedContent = getAttachedContent();
+    const attachmentMetadata = getAttachmentMetadata();
+
+    // Clear attachments after getting data
+    clearAttachments();
 
     // Create conversation if needed
     let conversationId = currentConversation?.id;
@@ -40,7 +72,12 @@ export function MessageInput({ variant = 'default' }: MessageInputProps) {
       conversationId = conversation.id;
     }
 
-    await sendMessage(content, conversationId);
+    await sendMessage(
+      content,
+      conversationId,
+      attachedContent || undefined,
+      attachmentMetadata.length > 0 ? attachmentMetadata : undefined
+    );
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -50,7 +87,9 @@ export function MessageInput({ variant = 'default' }: MessageInputProps) {
     }
   };
 
-  const isDisabled = !selectedAgent || isSending || !input.trim();
+  const hasReadyAttachments = attachments.some((a) => a.status === 'ready');
+  const isDisabled = !selectedAgent || isSending || (!input.trim() && !hasReadyAttachments) || isProcessing;
+  const tokenValidation = validateTotalSize(maxToken);
 
   return (
     <div className={cn(
@@ -58,7 +97,18 @@ export function MessageInput({ variant = 'default' }: MessageInputProps) {
       variant === 'default' && 'border-t border-gray-200'
     )}>
       <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
+        {/* Attachment list */}
+        <AttachmentList maxToken={maxToken} />
+
+        {/* Token error */}
+        {!tokenValidation.valid && (
+          <p className="text-xs text-red-500 mb-2">{tokenValidation.error}</p>
+        )}
+
         <div className="relative flex items-center gap-2 bg-gray-100 rounded-2xl p-2">
+          {/* Attachment button */}
+          <FileAttachmentButton disabled={!selectedAgent || isSending} />
+
           <textarea
             ref={textareaRef}
             value={input}

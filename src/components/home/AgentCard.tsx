@@ -9,7 +9,7 @@ interface AgentCardProps {
   onClick: () => void;
 }
 
-export function AgentCard({ agent, imageUrl, onClick }: AgentCardProps) {
+export function AgentCard({ agent, imageUrl: _imageUrl, onClick }: AgentCardProps) {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
 

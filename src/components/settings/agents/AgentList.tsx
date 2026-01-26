@@ -1,0 +1,174 @@
+import { useNavigate } from 'react-router-dom';
+import { Edit2, Trash2, Plus } from 'lucide-react';
+import { Table } from '../../common/Table';
+import type { Column } from '../../common/Table';
+import { Badge } from '../../common/Badge';
+import { Button } from '../../common/Button';
+import { ConfirmModal } from '../../common/Modal';
+import { useState } from 'react';
+import type { Agent } from '../../../types';
+import { usePermissionStore, useAgentStore } from '../../../stores';
+import { formatDate } from '../../../lib/utils';
+
+interface AgentListProps {
+  agents: Agent[];
+  isLoading: boolean;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+}
+
+export function AgentList({
+  agents,
+  isLoading,
+  searchQuery,
+  onSearchChange,
+}: AgentListProps) {
+  const navigate = useNavigate();
+  const { canCreate, canEdit, canDelete } = usePermissionStore();
+  const { deleteAgent, isSaving } = useAgentStore();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [agentToDelete, setAgentToDelete] = useState<Agent | null>(null);
+
+  const filteredAgents = agents.filter(
+    (agent) =>
+      agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      agent.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleDelete = async () => {
+    if (agentToDelete) {
+      const success = await deleteAgent(agentToDelete.id);
+      if (success) {
+        setDeleteModalOpen(false);
+        setAgentToDelete(null);
+      }
+    }
+  };
+
+  const columns: Column<Agent>[] = [
+    {
+      key: 'name',
+      header: 'Ajan Adı',
+      render: (agent) => (
+        <div className="font-medium text-gray-900">{agent.name}</div>
+      ),
+    },
+    {
+      key: 'description',
+      header: 'Açıklama',
+      render: (agent) => (
+        <div className="text-gray-500 max-w-xs truncate">
+          {agent.description || '-'}
+        </div>
+      ),
+    },
+    {
+      key: 'interactive',
+      header: 'İnteraktif',
+      render: (agent) => (
+        <Badge variant={agent.interactive ? 'success' : 'default'}>
+          {agent.interactive ? 'Evet' : 'Hayır'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'active',
+      header: 'Durum',
+      render: (agent) => (
+        <Badge variant={agent.active ? 'success' : 'danger'}>
+          {agent.active ? 'Aktif' : 'Pasif'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'created_at',
+      header: 'Oluşturulma',
+      render: (agent) => (
+        <span className="text-gray-500">
+          {agent.created_at ? formatDate(agent.created_at) : '-'}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'İşlemler',
+      render: (agent) => (
+        <div className="flex items-center gap-2">
+          {canEdit(agent.id) && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/settings/agents/${agent.id}`);
+              }}
+              className="p-1.5 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-md transition-colors"
+              title="Düzenle"
+            >
+              <Edit2 className="h-4 w-4" />
+            </button>
+          )}
+          {canDelete(agent.id) && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setAgentToDelete(agent);
+                setDeleteModalOpen(true);
+              }}
+              className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+              title="Sil"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="bg-white rounded-lg shadow">
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between gap-4">
+          <input
+            type="text"
+            placeholder="Ajan ara..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="flex-1 max-w-sm px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          />
+          {canCreate() && (
+            <Button onClick={() => navigate('/settings/agents/new')}>
+              <Plus className="h-4 w-4" />
+              Ajan Oluştur
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <Table
+        columns={columns}
+        data={filteredAgents}
+        keyExtractor={(agent) => agent.id}
+        onRowClick={(agent) => canEdit(agent.id) && navigate(`/settings/agents/${agent.id}`)}
+        isLoading={isLoading}
+        emptyMessage="Ajan bulunamadı"
+      />
+
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setAgentToDelete(null);
+        }}
+        onConfirm={handleDelete}
+        title="Ajanı Sil"
+        message={`"${agentToDelete?.name}" ajanını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`}
+        confirmText="Sil"
+        cancelText="İptal"
+        variant="danger"
+        isLoading={isSaving}
+      />
+    </div>
+  );
+}
+
+export default AgentList;
