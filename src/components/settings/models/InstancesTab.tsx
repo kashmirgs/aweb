@@ -8,6 +8,12 @@ import { cn } from '../../../lib/utils';
 import type { LocalLLMInstance } from '../../../types/localLlm';
 
 const statusLabels: Record<string, { label: string; color: string }> = {
+  // API runtime_state values (uppercase)
+  READY: { label: 'Aktif', color: 'bg-green-100 text-green-700' },
+  LOADING: { label: 'Yukleniyor', color: 'bg-blue-100 text-blue-700' },
+  STOPPED: { label: 'Durduruldu', color: 'bg-gray-100 text-gray-700' },
+  ERROR: { label: 'Hata', color: 'bg-red-100 text-red-700' },
+  // Local optimistic update values (lowercase)
   pending: { label: 'Bekliyor', color: 'bg-gray-100 text-gray-700' },
   loading: { label: 'Yukleniyor', color: 'bg-blue-100 text-blue-700' },
   loaded: { label: 'Aktif', color: 'bg-green-100 text-green-700' },
@@ -54,8 +60,10 @@ export function InstancesTab() {
     }
   };
 
-  const getStatusInfo = (status?: string) => {
-    return statusLabels[status || 'pending'] || statusLabels.pending;
+  const getStatusInfo = (instance: LocalLLMInstance) => {
+    // Prefer runtime_state from API, fall back to local status for optimistic updates
+    const state = instance.runtime_state || instance.status || 'STOPPED';
+    return statusLabels[state] || statusLabels.STOPPED;
   };
 
   const columns: Column<LocalLLMInstance>[] = [
@@ -105,7 +113,7 @@ export function InstancesTab() {
       key: 'status',
       header: 'Durum',
       render: (instance) => {
-        const statusInfo = getStatusInfo(instance.status);
+        const statusInfo = getStatusInfo(instance);
         return (
           <span
             className={cn(
@@ -123,8 +131,10 @@ export function InstancesTab() {
       header: 'Islemler',
       className: 'text-right',
       render: (instance) => {
-        const isLoaded = instance.status === 'loaded';
-        const isActionable = !['loading', 'unloading'].includes(instance.status || '');
+        // Check both runtime_state (API) and status (optimistic updates)
+        const state = instance.runtime_state || instance.status || '';
+        const isLoaded = state === 'READY' || state === 'loaded';
+        const isActionable = !['LOADING', 'loading', 'unloading'].includes(state);
         const isCurrentAction = actionInProgress === instance.id;
 
         return (

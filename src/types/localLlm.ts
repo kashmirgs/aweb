@@ -16,6 +16,7 @@ export interface LocalLLMInstance {
   tensor_parallel_size: number;
   max_model_len_override?: number;
   status?: 'pending' | 'loading' | 'loaded' | 'unloading' | 'error';
+  runtime_state?: string;  // "READY", "LOADING", "STOPPED", etc. from API
   local_llm?: LocalLLM;
 }
 
