@@ -60,13 +60,3 @@ export interface ConversationStarter {
   title?: string;
   created_at?: string;
 }
-
-export interface AgentFile {
-  id: number;
-  chatbot_id: number;
-  filename: string;
-  file_path?: string;
-  file_size?: number;
-  mime_type?: string;
-  created_at?: string;
-}

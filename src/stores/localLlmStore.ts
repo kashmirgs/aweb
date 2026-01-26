@@ -28,7 +28,7 @@ interface LocalLlmState {
   error: string | null;
 
   // Polling
-  metricsPollingInterval: NodeJS.Timeout | null;
+  metricsPollingInterval: ReturnType<typeof setInterval> | null;
 
   // Model actions
   fetchModels: () => Promise<void>;
