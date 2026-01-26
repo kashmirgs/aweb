@@ -3,6 +3,7 @@ import { Logo, Button } from '../common';
 import { ConversationList } from './ConversationList';
 import { useChatStore, useAgentStore, usePermissionStore } from '../../stores';
 import { Plus, PanelLeftClose, Bot, Cpu } from 'lucide-react';
+// PanelLeft removed - was unused
 import { cn } from '../../lib/utils';
 
 interface SidebarProps {

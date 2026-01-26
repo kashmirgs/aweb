@@ -5,11 +5,11 @@ import type { Agent } from '../../types';
 
 interface AgentCardProps {
   agent: Agent;
-  imageUrl: string;
+  imageUrl?: string; // Optional - component fetches image directly
   onClick: () => void;
 }
 
-export function AgentCard({ agent, imageUrl: _imageUrl, onClick }: AgentCardProps) {
+export function AgentCard({ agent, onClick }: AgentCardProps) {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
 
