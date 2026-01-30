@@ -1,23 +1,69 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Upload, X } from 'lucide-react';
 import { Toggle } from '../../common/Toggle';
 import { Button } from '../../common/Button';
 import type { Agent, LLMModel } from '../../../types';
-import { useAgentStore } from '../../../stores';
+import type { LocalLLMInstance } from '../../../types/localLlm';
+import apiClient from '../../../api/client';
 
 interface GeneralSettingsTabProps {
   agent: Partial<Agent>;
   onChange: (updates: Partial<Agent>) => void;
   llmModels: LLMModel[];
+  llmInstances?: LocalLLMInstance[];
+  imageVersion?: number;
 }
 
 export function GeneralSettingsTab({
   agent,
   onChange,
   llmModels,
+  llmInstances = [],
+  imageVersion = 0,
 }: GeneralSettingsTabProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { getAgentImageUrl } = useAgentStore();
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const imageSrcRef = useRef<string | null>(null);
+
+  // Fetch agent image through apiClient (with auth headers)
+  useEffect(() => {
+    let isMounted = true;
+
+    // Eski blob URL'i temizle
+    if (imageSrcRef.current) {
+      URL.revokeObjectURL(imageSrcRef.current);
+      imageSrcRef.current = null;
+    }
+    // Yeni görsel fetch edilirken eski görseli gösterme
+    setImageSrc(null);
+
+    const fetchImage = async () => {
+      if (!agent.id) {
+        return;
+      }
+
+      try {
+        // Cache-busting için timestamp ekle
+        const timestamp = Date.now();
+        const response = await apiClient.get(`/chatbot/${agent.id}/image?v=${timestamp}`, {
+          responseType: 'blob',
+        });
+        if (isMounted && response.data && response.data.size > 0) {
+          const blobUrl = URL.createObjectURL(response.data);
+          imageSrcRef.current = blobUrl;
+          setImageSrc(blobUrl);
+        }
+      } catch {
+        // Görsel yoksa sessizce devam et
+      }
+    };
+
+    fetchImage();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [agent.id, agent.modified_at, imageVersion]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -25,8 +71,6 @@ export function GeneralSettingsTab({
       onChange({ _imageFile: file } as unknown as Partial<Agent>);
     }
   };
-
-  const imageUrl = agent.id ? getAgentImageUrl(agent.id) : null;
 
   return (
     <div className="space-y-6">
@@ -72,7 +116,7 @@ export function GeneralSettingsTab({
         />
       </div>
 
-      {/* LLM Model */}
+      {/* LLM Instance */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Yerel LLM Modeli
@@ -87,9 +131,9 @@ export function GeneralSettingsTab({
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
         >
           <option value="">Model seçin</option>
-          {llmModels.map((model) => (
-            <option key={model.id} value={model.id}>
-              {model.name}
+          {llmInstances.map((instance) => (
+            <option key={instance.id} value={instance.id}>
+              {instance.name || instance.local_llm?.hf_name || `Instance #${instance.id}`}
             </option>
           ))}
         </select>
@@ -101,13 +145,13 @@ export function GeneralSettingsTab({
           Görsel
         </label>
         <div className="flex items-start gap-4">
-          {(imageUrl || (agent as unknown as { _imageFile?: File })._imageFile) && (
+          {(imageSrc || (agent as unknown as { _imageFile?: File })._imageFile) && (
             <div className="relative">
               <img
                 src={
                   (agent as unknown as { _imageFile?: File })._imageFile
                     ? URL.createObjectURL((agent as unknown as { _imageFile?: File })._imageFile!)
-                    : imageUrl!
+                    : imageSrc!
                 }
                 alt={agent.name || 'Agent'}
                 className="w-20 h-20 rounded-lg object-cover border border-gray-200"

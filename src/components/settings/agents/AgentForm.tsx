@@ -54,7 +54,7 @@ export function AgentForm({ agentId, isNew = false }: AgentFormProps) {
     deleteFile,
     clearError,
   } = useAgentStore();
-  const { llmModels, fetchLLMModels } = usePermissionStore();
+  const { llmModels, llmInstances, fetchLLMModels, fetchLLMInstances } = usePermissionStore();
 
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('settings');
   const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsSubTab>('general');
@@ -66,16 +66,18 @@ export function AgentForm({ agentId, isNew = false }: AgentFormProps) {
     active: true,
   });
   const [, setHasChanges] = useState(false);
+  const [imageVersion, setImageVersion] = useState(0);
 
   useEffect(() => {
     fetchLLMModels();
+    fetchLLMInstances();
 
     if (!isNew && agentId) {
       fetchAgent(agentId);
       fetchStarters(agentId);
       fetchFiles(agentId);
     }
-  }, [agentId, isNew, fetchAgent, fetchStarters, fetchFiles, fetchLLMModels]);
+  }, [agentId, isNew, fetchAgent, fetchStarters, fetchFiles, fetchLLMModels, fetchLLMInstances]);
 
   useEffect(() => {
     if (currentAgent && !isNew) {
@@ -107,6 +109,14 @@ export function AgentForm({ agentId, isNew = false }: AgentFormProps) {
       const agent = await updateAgent(agentId, dataToSave as AgentUpdateRequest);
       if (agent && imageFile) {
         await uploadImage(agent.id, imageFile);
+        // Force image refresh by incrementing version
+        setImageVersion(v => v + 1);
+        // Store'dan güncel agent'ı al ve formData'yı güncelle (görsel URL'ini yenilemek için)
+        const updatedAgent = useAgentStore.getState().currentAgent;
+        if (updatedAgent) {
+          // _imageFile'ı temizleyerek yeni yüklenen görselin fetch edilmesini sağla
+          setFormData({ ...updatedAgent });
+        }
       }
       if (agent) {
         setHasChanges(false);
@@ -225,6 +235,8 @@ export function AgentForm({ agentId, isNew = false }: AgentFormProps) {
                     agent={formData}
                     onChange={handleChange}
                     llmModels={llmModels}
+                    llmInstances={llmInstances}
+                    imageVersion={imageVersion}
                   />
                 )}
                 {activeSettingsTab === 'advanced' && (

@@ -1,15 +1,19 @@
 import { create } from 'zustand';
 import type { UserPermissions, LLMModel } from '../types';
+import type { LocalLLMInstance } from '../types/localLlm';
 import { permissionsApi, llmModelsApi } from '../api';
+import { localLlmApi } from '../api/localLlm';
 
 interface PermissionState {
   permissions: UserPermissions | null;
   llmModels: LLMModel[];
+  llmInstances: LocalLLMInstance[];
   isLoading: boolean;
   error: string | null;
 
   fetchPermissions: () => Promise<void>;
   fetchLLMModels: () => Promise<void>;
+  fetchLLMInstances: () => Promise<void>;
   isSuperAdmin: () => boolean;
   canCreate: () => boolean;
   canEdit: (agentId: number) => boolean;
@@ -20,6 +24,7 @@ interface PermissionState {
 export const usePermissionStore = create<PermissionState>((set, get) => ({
   permissions: null,
   llmModels: [],
+  llmInstances: [],
   isLoading: false,
   error: null,
 
@@ -75,6 +80,16 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
     }
   },
 
+  fetchLLMInstances: async () => {
+    try {
+      const llmInstances = await localLlmApi.listInstances();
+      set({ llmInstances });
+    } catch (error) {
+      console.warn('LLM instances endpoint not available');
+      set({ llmInstances: [] });
+    }
+  },
+
   isSuperAdmin: () => {
     const { permissions } = get();
     return permissions?.is_super_admin ?? false;
@@ -101,7 +116,7 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   },
 
   clearPermissions: () => {
-    set({ permissions: null, llmModels: [], error: null });
+    set({ permissions: null, llmModels: [], llmInstances: [], error: null });
   },
 }));
 
