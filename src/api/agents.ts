@@ -4,7 +4,9 @@ import { API_BASE_URL } from '../config/api';
 
 export const agentsApi = {
   async list(): Promise<Agent[]> {
-    const response = await apiClient.get<Agent[]>('/chatbot');
+    const response = await apiClient.get<Agent[]>('/chatbot', {
+      params: { limit: 100 }
+    });
     return response.data;
   },
 
