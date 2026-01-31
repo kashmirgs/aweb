@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import type { Agent } from '../../../types';
+import { Button } from '../../common/Button';
+import { useAgentStore } from '../../../stores/agentStore';
 
 interface AdvancedSettingsTabProps {
   agent: Partial<Agent>;
@@ -52,7 +55,19 @@ export function AdvancedSettingsTab({
   agent,
   onChange,
 }: AdvancedSettingsTabProps) {
+  const [isIndexing, setIsIndexing] = useState(false);
+  const { buildIndex } = useAgentStore();
   const indexSettings = agent.index_settings ?? {};
+
+  const handleReindex = async () => {
+    if (!agent.id) return;
+    setIsIndexing(true);
+    try {
+      await buildIndex(agent.id);
+    } finally {
+      setIsIndexing(false);
+    }
+  };
 
   const handleIndexChange = (field: string, value: number | undefined) => {
     onChange({
@@ -119,6 +134,23 @@ export function AdvancedSettingsTab({
           helpText="Parçalar arası örtüşme karakter sayısı"
         />
       </div>
+
+      {/* Re-index button */}
+      {agent.id && (
+        <div className="pt-4 border-t">
+          <Button
+            onClick={handleReindex}
+            isLoading={isIndexing}
+            disabled={isIndexing}
+            variant="secondary"
+          >
+            {isIndexing ? 'İndeksleniyor...' : 'Tekrar İndeksle'}
+          </Button>
+          <p className="text-xs text-gray-500 mt-1">
+            Dokümanları yeniden indeksler
+          </p>
+        </div>
+      )}
     </div>
   );
 }
