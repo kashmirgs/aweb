@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, FileText, Settings, MessageSquare, Bot, Sliders } from 'lucide-react';
+import { ArrowLeft, Save, FileText, Settings, MessageSquare, Bot, Sliders, Shield } from 'lucide-react';
 import { Button } from '../../common/Button';
 import { Tabs } from '../../common/Tabs';
 import type { Tab } from '../../common/Tabs';
@@ -9,6 +9,7 @@ import { AdvancedSettingsTab } from './AdvancedSettingsTab';
 import { LLMSettingsTab } from './LLMSettingsTab';
 import { FilesTab } from './FilesTab';
 import { QuickQuestionsTab } from './QuickQuestionsTab';
+import { AuthorizationTab } from './AuthorizationTab';
 import { useAgentStore, usePermissionStore } from '../../../stores';
 import type { Agent, AgentCreateRequest, AgentUpdateRequest } from '../../../types';
 
@@ -17,14 +18,16 @@ interface AgentFormProps {
   isNew?: boolean;
 }
 
-type SidebarTab = 'files' | 'settings' | 'quick-questions';
+type SidebarTab = 'files' | 'settings' | 'quick-questions' | 'authorization';
 type SettingsSubTab = 'general' | 'advanced' | 'llm';
 
-const sidebarTabs: { id: SidebarTab; label: string; icon: React.ReactNode }[] = [
+const baseSidebarTabs: { id: SidebarTab; label: string; icon: React.ReactNode }[] = [
   { id: 'files', label: 'Dosyalar', icon: <FileText className="h-5 w-5" /> },
   { id: 'settings', label: 'Ayarlar', icon: <Settings className="h-5 w-5" /> },
   { id: 'quick-questions', label: 'Hızlı Sorular', icon: <MessageSquare className="h-5 w-5" /> },
 ];
+
+const authorizationTab = { id: 'authorization' as SidebarTab, label: 'Yetkilendirme', icon: <Shield className="h-5 w-5" /> };
 
 const settingsSubTabs: Tab[] = [
   { id: 'general', label: 'Genel', icon: <Bot className="h-4 w-4" /> },
@@ -54,7 +57,12 @@ export function AgentForm({ agentId, isNew = false }: AgentFormProps) {
     deleteFile,
     clearError,
   } = useAgentStore();
-  const { llmModels, llmInstances, fetchLLMModels, fetchLLMInstances } = usePermissionStore();
+  const { llmModels, llmInstances, fetchLLMModels, fetchLLMInstances, canEdit } = usePermissionStore();
+
+  const hasEditPermission = agentId ? canEdit(agentId) : false;
+  const sidebarTabs = hasEditPermission
+    ? [...baseSidebarTabs, authorizationTab]
+    : baseSidebarTabs;
 
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('settings');
   const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsSubTab>('general');
@@ -181,10 +189,12 @@ export function AgentForm({ agentId, isNew = false }: AgentFormProps) {
               )}
             </div>
           </div>
-          <Button onClick={handleSave} isLoading={isSaving} disabled={isNew && !formData.name}>
-            <Save className="h-4 w-4" />
-            {isNew ? 'Oluştur' : 'Kaydet'}
-          </Button>
+          {(isNew || activeSidebarTab === 'settings') && (
+            <Button onClick={handleSave} isLoading={isSaving} disabled={isNew && !formData.name}>
+              <Save className="h-4 w-4" />
+              {isNew ? 'Oluştur' : 'Kaydet'}
+            </Button>
+          )}
         </div>
         {error && (
           <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
@@ -268,6 +278,12 @@ export function AgentForm({ agentId, isNew = false }: AgentFormProps) {
                   onUpdate={handleStarterUpdate}
                   onDelete={handleStarterDelete}
                 />
+              </div>
+            )}
+
+            {!isNew && activeSidebarTab === 'authorization' && agentId && hasEditPermission && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <AuthorizationTab agentId={agentId} />
               </div>
             )}
           </div>
