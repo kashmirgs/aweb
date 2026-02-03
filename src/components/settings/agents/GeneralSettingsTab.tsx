@@ -43,9 +43,7 @@ export function GeneralSettingsTab({
       }
 
       try {
-        // Cache-busting için timestamp ekle
-        const timestamp = Date.now();
-        const response = await apiClient.get(`/chatbot/${agent.id}/image?v=${timestamp}`, {
+        const response = await apiClient.get(`/chatbot/${agent.id}/image`, {
           responseType: 'blob',
         });
         if (isMounted && response.data && response.data.size > 0) {
