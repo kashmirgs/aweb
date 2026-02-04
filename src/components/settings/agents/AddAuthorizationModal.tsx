@@ -28,7 +28,7 @@ export function AddAuthorizationModal({
 }: AddAuthorizationModalProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [scopes, setScopes] = useState<Scope[]>([]);
+  const [, setScopes] = useState<Scope[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -106,12 +106,6 @@ export function AddAuthorizationModal({
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const getScopeName = (scopeId: number): string => {
-    const scope = scopes.find((s) => s.id === scopeId);
-    if (scope) return scope.name;
-    return scopeId === 3 ? 'Kullanıcı' : scopeId === 2 ? 'Ajan Admin' : `Scope ${scopeId}`;
   };
 
   return (

@@ -17,7 +17,7 @@ interface GeneralSettingsTabProps {
 export function GeneralSettingsTab({
   agent,
   onChange,
-  llmModels,
+  llmModels: _llmModels,
   llmInstances = [],
   imageVersion = 0,
 }: GeneralSettingsTabProps) {

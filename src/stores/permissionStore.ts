@@ -33,7 +33,10 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   fetchPermissions: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await permissionsApi.getUserPermissions();
+      const response = await permissionsApi.getUserPermissions() as {
+        permissions?: Array<{ chatbot_id: number; scope?: { id?: number; name?: string } }>;
+        is_super_admin?: boolean;
+      };
 
       // Get user ID from auth store to check for super admin (user_id === 1)
       const userId = useAuthStore.getState().user?.id;
@@ -61,7 +64,7 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
       const hasAdminScope = permissions.some((p: { scope?: { id?: number } }) => p.scope?.id === 1);
 
       // User ID 1 is always super admin (per CLAUDE.md), or if they have admin scope
-      const isSuperAdmin = userId === 1 || hasAdminScope || response.is_super_admin;
+      const isSuperAdmin = userId === 1 || hasAdminScope || response.is_super_admin === true;
 
       const normalizedPermissions: UserPermissions = {
         is_super_admin: isSuperAdmin,
