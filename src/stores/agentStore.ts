@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Agent, ConversationStarter, AgentCreateRequest, AgentUpdateRequest, AgentFile } from '../types';
-import { agentsApi } from '../api';
+import { agentsApi, permissionsApi } from '../api';
+import { useAuthStore } from './authStore';
 
 interface AgentState {
   agents: Agent[];
@@ -72,6 +73,18 @@ export const useAgentStore = create<AgentState>((set, get) => ({
     set({ isSaving: true, error: null });
     try {
       const agent = await agentsApi.create(data);
+
+      // Grant agent_admin permission to the creator (scope_id: 2)
+      // This is a workaround for backend not showing chatbots to super_admin without explicit permission
+      const user = useAuthStore.getState().user;
+      if (user?.id) {
+        try {
+          await permissionsApi.grantPermission(user.id, agent.id, 2);
+        } catch (permError) {
+          console.warn('Failed to grant permission:', permError);
+        }
+      }
+
       set((state) => ({
         agents: [...state.agents, agent],
         isSaving: false,

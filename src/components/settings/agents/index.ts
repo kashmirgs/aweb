@@ -5,3 +5,5 @@ export { AdvancedSettingsTab } from './AdvancedSettingsTab';
 export { LLMSettingsTab } from './LLMSettingsTab';
 export { FilesTab } from './FilesTab';
 export { QuickQuestionsTab } from './QuickQuestionsTab';
+export { AuthorizationTab } from './AuthorizationTab';
+export { AddAuthorizationModal } from './AddAuthorizationModal';

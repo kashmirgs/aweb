@@ -12,13 +12,29 @@ export interface GroupAuthorization {
   created_at?: string;
 }
 
-export interface UserAuthorization {
+export interface UserAuthorizationUser {
   id: number;
-  user_id: number;
   username: string;
-  chatbot_id: number;
-  is_admin: boolean;
+  email: string;
+  name?: string;
+  surname?: string;
+  department?: string;
+  phone?: string;
+  foreign_id?: string;
   created_at?: string;
+}
+
+export interface UserAuthorizationScope {
+  id: number;
+  name: string;
+  description?: string;
+  via_group: boolean;
+}
+
+export interface UserAuthorization {
+  agent_id: number;
+  user: UserAuthorizationUser;
+  scopes: UserAuthorizationScope[];
 }
 
 export interface LLMModel {
@@ -40,4 +56,17 @@ export interface AgentFile {
   type?: string;
   status?: 'pending' | 'processing' | 'ready' | 'error' | string;
   created_at?: string;
+}
+
+export interface Scope {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+export interface Group {
+  id: number;
+  name: string;
+  description?: string;
+  external_id?: string;
 }

@@ -3,7 +3,10 @@ import { Cpu, Thermometer, Activity, HardDrive, Loader2 } from 'lucide-react';
 import { useLocalLlmStore } from '../../../stores/localLlmStore';
 import { cn } from '../../../lib/utils';
 
-function formatMemory(bytes: number): string {
+function formatMemory(bytes: number | undefined | null): string {
+  if (bytes === undefined || bytes === null || isNaN(bytes)) {
+    return '- GB';
+  }
   const gb = bytes / (1024 * 1024 * 1024);
   return `${gb.toFixed(1)} GB`;
 }
@@ -14,12 +17,19 @@ export function GPUStatusTab() {
     gpuMetrics,
     isLoadingGPUs,
     fetchGPUsWithInstances,
+    startMetricsPolling,
+    stopMetricsPolling,
     getModelById,
   } = useLocalLlmStore();
 
   useEffect(() => {
     fetchGPUsWithInstances();
-  }, [fetchGPUsWithInstances]);
+    startMetricsPolling(5000); // Her 5 saniyede bir güncelle
+
+    return () => {
+      stopMetricsPolling();
+    };
+  }, [fetchGPUsWithInstances, startMetricsPolling, stopMetricsPolling]);
 
   const getMetricsForGPU = (gpuId: number) => {
     return gpuMetrics.find((m) => m.gpu_id === gpuId);
@@ -50,7 +60,7 @@ export function GPUStatusTab() {
           const memoryTotal = metrics?.memory_total ?? gpu.memory_total;
           const utilization = metrics?.utilization ?? gpu.utilization ?? 0;
           const temperature = metrics?.temperature;
-          const memoryPercent = (memoryUsed / memoryTotal) * 100;
+          const memoryPercent = memoryTotal > 0 ? (memoryUsed / memoryTotal) * 100 : 0;
 
           return (
             <div
@@ -95,7 +105,7 @@ export function GPUStatusTab() {
                     />
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    {memoryPercent.toFixed(1)}% kullaniliyor
+                    {isNaN(memoryPercent) ? '-' : memoryPercent.toFixed(1)}% kullaniliyor
                   </p>
                 </div>
 

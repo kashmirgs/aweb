@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { UserPermissions, LLMModel } from '../types';
+import type { UserPermissions, LLMModel, UserAuthorization, GroupAuthorization } from '../types';
 
 export const permissionsApi = {
   async getUserPermissions(): Promise<UserPermissions> {
@@ -17,6 +17,52 @@ export const permissionsApi = {
     } catch {
       return false;
     }
+  },
+
+  async grantPermission(userId: number, chatbotId: number, scopeId: number): Promise<void> {
+    await apiClient.post('/auth/permissions', {
+      user_id: userId,
+      chatbot_id: chatbotId,
+      scope_id: scopeId,
+    });
+  },
+
+  async revokePermission(userId: number, chatbotId: number, scopeId: number): Promise<void> {
+    await apiClient.delete('/auth/permissions', {
+      data: {
+        user_id: userId,
+        chatbot_id: chatbotId,
+        scope_id: scopeId,
+      },
+    });
+  },
+
+  async getAgentAuthorizations(agentId: number): Promise<UserAuthorization[]> {
+    const response = await apiClient.get<UserAuthorization[]>(`/auth/permissions/agent/${agentId}`);
+    return response.data;
+  },
+
+  async grantGroupPermission(groupId: number, chatbotId: number, scopeId: number): Promise<void> {
+    await apiClient.post('/auth/permissions/groups', {
+      group_id: groupId,
+      chatbot_id: chatbotId,
+      scope_id: scopeId,
+    });
+  },
+
+  async revokeGroupPermission(groupId: number, chatbotId: number, scopeId: number): Promise<void> {
+    await apiClient.delete('/auth/permissions/groups', {
+      data: {
+        group_id: groupId,
+        chatbot_id: chatbotId,
+        scope_id: scopeId,
+      },
+    });
+  },
+
+  async getAgentGroupAuthorizations(agentId: number): Promise<GroupAuthorization[]> {
+    const response = await apiClient.get<GroupAuthorization[]>(`/auth/permissions/groups/${agentId}`);
+    return response.data;
   },
 };
 

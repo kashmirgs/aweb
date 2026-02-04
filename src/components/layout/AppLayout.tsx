@@ -46,6 +46,17 @@ export function AppLayout() {
     }
   }, [isAuthenticated, user, fetchAgents, fetchConversations, fetchPermissions, permissions]);
 
+  // Protect /settings/models route - super admin only
+  useEffect(() => {
+    if (
+      location.pathname === '/settings/models' &&
+      permissions &&
+      !permissions.is_super_admin
+    ) {
+      navigate('/settings/agents', { replace: true });
+    }
+  }, [location.pathname, permissions, navigate]);
+
   // Show loading only during initial auth check
   if (isChecking) {
     return (
