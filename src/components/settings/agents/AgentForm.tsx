@@ -55,6 +55,7 @@ export function AgentForm({ agentId, isNew = false }: AgentFormProps) {
     fetchFiles,
     uploadFile,
     deleteFile,
+    buildIndex,
     clearError,
   } = useAgentStore();
   const { llmModels, llmInstances, fetchLLMModels, fetchLLMInstances, canEdit } = usePermissionStore();
@@ -141,6 +142,12 @@ export function AgentForm({ agentId, isNew = false }: AgentFormProps) {
   const handleFileDelete = async (fileId: number) => {
     if (agentId) {
       await deleteFile(agentId, fileId);
+    }
+  };
+
+  const handleUploadComplete = async () => {
+    if (agentId) {
+      await buildIndex(agentId);
     }
   };
 
@@ -265,6 +272,7 @@ export function AgentForm({ agentId, isNew = false }: AgentFormProps) {
                   isLoading={false}
                   onUpload={handleFileUpload}
                   onDelete={handleFileDelete}
+                  onUploadComplete={handleUploadComplete}
                 />
               </div>
             )}

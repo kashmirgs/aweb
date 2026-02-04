@@ -1,16 +1,35 @@
-import { useRef } from 'react';
-import { Upload, Trash2, FileText, FileSpreadsheet, File } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Upload, Trash2, FileText, FileSpreadsheet, File, AlertCircle } from 'lucide-react';
 import { Button } from '../../common/Button';
 import { Badge } from '../../common/Badge';
 import { ConfirmModal } from '../../common/Modal';
-import { useState } from 'react';
+import { cn } from '../../../lib/utils';
 import type { AgentFile } from '../../../types';
+
+const SUPPORTED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.txt', '.xls', '.xlsx'];
+
+function validateFiles(files: FileList | File[]): { valid: File[]; invalid: string[] } {
+  const valid: File[] = [];
+  const invalid: string[] = [];
+
+  Array.from(files).forEach(file => {
+    const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (SUPPORTED_EXTENSIONS.includes(ext)) {
+      valid.push(file);
+    } else {
+      invalid.push(file.name);
+    }
+  });
+
+  return { valid, invalid };
+}
 
 interface FilesTabProps {
   files: AgentFile[];
   isLoading: boolean;
   onUpload: (file: File) => Promise<void>;
   onDelete: (fileId: number) => Promise<void>;
+  onUploadComplete?: () => Promise<void>;
 }
 
 function getFileIcon(filename: string, fileType?: string) {
@@ -48,26 +67,62 @@ function getStatusBadge(status?: string) {
   return <Badge variant="default">{status}</Badge>;
 }
 
-export function FilesTab({ files, isLoading, onUpload, onDelete }: FilesTabProps) {
+export function FilesTab({ files, isLoading, onUpload, onDelete, onUploadComplete }: FilesTabProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<AgentFile | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+  const handleFiles = async (fileList: FileList) => {
+    const { valid, invalid } = validateFiles(fileList);
+
+    if (invalid.length > 0) {
+      setUploadError(`Şu dosyalar desteklenmediği için eklenemedi: ${invalid.join(', ')}`);
+    }
+
+    if (valid.length > 0) {
       setIsUploading(true);
       try {
-        await onUpload(file);
+        for (const file of valid) {
+          await onUpload(file);
+        }
+        // Tüm dosyalar yüklendikten sonra indekslemeyi tetikle
+        if (onUploadComplete) {
+          await onUploadComplete();
+        }
       } finally {
         setIsUploading(false);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
       }
     }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (fileList && fileList.length > 0) {
+      await handleFiles(fileList);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    await handleFiles(e.dataTransfer.files);
   };
 
   const handleDelete = async () => {
@@ -101,6 +156,7 @@ export function FilesTab({ files, isLoading, onUpload, onDelete }: FilesTabProps
             type="file"
             onChange={handleFileChange}
             accept=".pdf,.doc,.docx,.txt,.xls,.xlsx"
+            multiple
             className="hidden"
           />
           <Button
@@ -114,12 +170,43 @@ export function FilesTab({ files, isLoading, onUpload, onDelete }: FilesTabProps
         </div>
       </div>
 
+      {uploadError && (
+        <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
+          <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+          <div>
+            <p>{uploadError}</p>
+            <button
+              onClick={() => setUploadError(null)}
+              className="text-amber-600 hover:text-amber-700 underline mt-1"
+            >
+              Kapat
+            </button>
+          </div>
+        </div>
+      )}
+
       {files.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
-          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">Henüz dosya yüklenmedi</p>
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          className={cn(
+            "text-center py-12 border-2 border-dashed rounded-lg transition-colors cursor-pointer",
+            isDragging
+              ? "border-primary bg-primary/5"
+              : "border-gray-300 hover:border-gray-400"
+          )}
+        >
+          <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">
+            {isDragging ? "Dosyaları buraya bırakın" : "Dosyaları sürükleyip bırakın"}
+          </p>
           <p className="text-sm text-gray-400 mt-1">
-            PDF, DOCX, TXT, XLS, XLSX dosyaları yükleyebilirsiniz
+            veya <span className="text-primary">dosya seçmek için tıklayın</span>
+          </p>
+          <p className="text-xs text-gray-400 mt-2">
+            PDF, DOCX, TXT, XLS, XLSX (Maks. 50MB)
           </p>
         </div>
       ) : (

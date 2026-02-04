@@ -220,8 +220,6 @@ export const useAgentStore = create<AgentState>((set, get) => ({
     try {
       const agentFile = await agentsApi.uploadFile(agentId, file);
       set((state) => ({ files: [...state.files, agentFile] }));
-      // Trigger index building after successful upload
-      get().buildIndex(agentId);
       return agentFile;
     } catch (error) {
       console.error('Failed to upload file:', error);
