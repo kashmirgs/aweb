@@ -3,6 +3,7 @@ import type { UserPermissions, LLMModel } from '../types';
 import type { LocalLLMInstance } from '../types/localLlm';
 import { permissionsApi, llmModelsApi } from '../api';
 import { localLlmApi } from '../api/localLlm';
+import { useAuthStore } from './authStore';
 
 interface PermissionState {
   permissions: UserPermissions | null;
@@ -18,6 +19,7 @@ interface PermissionState {
   canCreate: () => boolean;
   canEdit: (agentId: number) => boolean;
   canDelete: (agentId: number) => boolean;
+  getEditableAgentIds: () => number[] | 'all';
   clearPermissions: () => void;
 }
 
@@ -33,24 +35,33 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
     try {
       const response = await permissionsApi.getUserPermissions();
 
-      // Parse the API response structure
-      // API returns: { user: {...}, permissions: [{ chatbot_id, scope: { name }, via_group }] }
-      const permissionsList = (response as unknown as { permissions?: Array<{ chatbot_id: number | null; scope: { name: string } }> })?.permissions ?? [];
+      // Get user ID from auth store to check for super admin (user_id === 1)
+      const userId = useAuthStore.getState().user?.id;
 
-      // Check if user is super admin (scope.name === "admin" with chatbot_id === null)
-      const isSuperAdmin = permissionsList.some(
-        (p) => p.scope?.name === 'admin' && p.chatbot_id === null
-      );
+      // Parse permissions array from API response
+      // API returns: { user: {...}, permissions: [{ chatbot_id, scope: { id, name } }] }
+      const permissions = response.permissions || [];
 
-      // Get agent IDs where user is agent_admin
-      const adminAgentIds = permissionsList
-        .filter((p) => p.scope?.name === 'agent_admin' && p.chatbot_id !== null)
-        .map((p) => p.chatbot_id as number);
+      // Scope values from CLAUDE.md:
+      // - Scope 1 = admin (global admin)
+      // - Scope 2 = agent_admin
+      // - Scope 3 = agent_user
 
-      // Get agent IDs where user has regular access
-      const userAgentIds = permissionsList
-        .filter((p) => p.scope?.name === 'user' && p.chatbot_id !== null)
-        .map((p) => p.chatbot_id as number);
+      // Extract agent IDs where user is agent_admin (scope 2)
+      const adminAgentIds = permissions
+        .filter((p: { scope?: { id?: number } }) => p.scope?.id === 2)
+        .map((p: { chatbot_id: number }) => p.chatbot_id);
+
+      // Extract agent IDs where user is agent_user (scope 3)
+      const userAgentIds = permissions
+        .filter((p: { scope?: { id?: number } }) => p.scope?.id === 3)
+        .map((p: { chatbot_id: number }) => p.chatbot_id);
+
+      // Check for global admin scope (scope 1)
+      const hasAdminScope = permissions.some((p: { scope?: { id?: number } }) => p.scope?.id === 1);
+
+      // User ID 1 is always super admin (per CLAUDE.md), or if they have admin scope
+      const isSuperAdmin = userId === 1 || hasAdminScope || response.is_super_admin;
 
       const normalizedPermissions: UserPermissions = {
         is_super_admin: isSuperAdmin,
@@ -113,6 +124,13 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
     const { permissions } = get();
     if (!permissions) return false;
     return permissions.is_super_admin;
+  },
+
+  getEditableAgentIds: () => {
+    const { permissions } = get();
+    if (!permissions) return [];
+    if (permissions.is_super_admin) return 'all';
+    return permissions.admin_agent_ids ?? [];
   },
 
   clearPermissions: () => {

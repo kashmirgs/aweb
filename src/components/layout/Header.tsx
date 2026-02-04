@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore, useAgentStore } from '../../stores';
+import { useAuthStore, useAgentStore, usePermissionStore } from '../../stores';
 import { Avatar } from '../common';
 import { LogOut, ChevronDown, PanelLeft, Settings } from 'lucide-react';
 
@@ -16,6 +16,7 @@ export function Header({ sidebarOpen = true, onToggleSidebar, hideAgentInfo = fa
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const { selectedAgent, getAgentImageUrl } = useAgentStore();
+  const { clearPermissions } = usePermissionStore();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -103,6 +104,7 @@ export function Header({ sidebarOpen = true, onToggleSidebar, hideAgentInfo = fa
             <button
               onClick={() => {
                 setIsMenuOpen(false);
+                clearPermissions();
                 logout();
               }}
               className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
