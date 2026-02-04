@@ -116,8 +116,8 @@ export function MessageInput({ variant = 'default' }: MessageInputProps) {
             onKeyDown={handleKeyDown}
             placeholder={
               selectedAgent
-                ? `Message ${selectedAgent.name}...`
-                : 'Select an agent to start chatting'
+                ? `${selectedAgent.name} ile sohbet edin...`
+                : 'Sohbete başlamak için bir ajan seçin'
             }
             disabled={!selectedAgent || isSending}
             className={cn(
@@ -150,7 +150,7 @@ export function MessageInput({ variant = 'default' }: MessageInputProps) {
           </button>
         </div>
         <p className="text-xs text-gray-400 text-center mt-2">
-          Press Enter to send, Shift+Enter for new line
+          Göndermek için Enter, yeni satır için Shift+Enter
         </p>
       </form>
     </div>

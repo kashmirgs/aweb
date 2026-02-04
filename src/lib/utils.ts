@@ -12,13 +12,13 @@ export function formatDate(date: string | Date): string {
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
   if (days === 0) {
-    return 'Today';
+    return 'Bugün';
   } else if (days === 1) {
-    return 'Yesterday';
+    return 'Dün';
   } else if (days < 7) {
-    return `${days} days ago`;
+    return `${days} gün önce`;
   } else {
-    return d.toLocaleDateString('en-US', {
+    return d.toLocaleDateString('tr-TR', {
       month: 'short',
       day: 'numeric',
       year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,

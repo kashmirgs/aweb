@@ -41,7 +41,7 @@ export function HomePage() {
 
         {interactiveAgents.length === 0 && (
           <div className="text-center text-gray-500 py-8">
-            <p>No agents available at the moment.</p>
+            <p>Şu anda kullanılabilir ajan yok.</p>
           </div>
         )}
       </div>

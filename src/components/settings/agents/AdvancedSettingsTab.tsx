@@ -102,7 +102,7 @@ export function AdvancedSettingsTab({
         />
 
         <NumberField
-          label="Index Result Distance"
+          label="İndeks Sonuç Mesafesi"
           value={agent.index_result_distance}
           onChange={(value) => onChange({ index_result_distance: value })}
           min={0}

@@ -67,7 +67,7 @@ export function LLMSettingsTab({ agent, onChange }: LLMSettingsTabProps) {
   return (
     <div className="space-y-8">
       <SliderField
-        label="Temperature"
+        label="Sıcaklık"
         value={llmSettings.temperature}
         onChange={(value) => handleLLMChange('temperature', value)}
         min={0}
@@ -89,7 +89,7 @@ export function LLMSettingsTab({ agent, onChange }: LLMSettingsTabProps) {
       />
 
       <SliderField
-        label="Presence Penalty"
+        label="Bulunma Cezası"
         value={llmSettings.presence_penalty}
         onChange={(value) => handleLLMChange('presence_penalty', value)}
         min={-2}
@@ -100,7 +100,7 @@ export function LLMSettingsTab({ agent, onChange }: LLMSettingsTabProps) {
       />
 
       <SliderField
-        label="Frequency Penalty"
+        label="Tekrar Cezası"
         value={llmSettings.frequency_penalty}
         onChange={(value) => handleLLMChange('frequency_penalty', value)}
         min={-2}
@@ -112,7 +112,7 @@ export function LLMSettingsTab({ agent, onChange }: LLMSettingsTabProps) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Max Token
+          Maksimum Token
         </label>
         <input
           type="number"

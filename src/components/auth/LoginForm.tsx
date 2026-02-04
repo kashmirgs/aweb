@@ -43,7 +43,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           htmlFor="username"
           className="block text-sm font-medium text-gray-700 mb-1"
         >
-          Username
+          Kullanıcı Adı
         </label>
         <input
           id="username"
@@ -51,7 +51,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           className="input-field"
-          placeholder="Enter your username"
+          placeholder="Kullanıcı adınızı girin"
           required
           autoComplete="username"
         />
@@ -62,7 +62,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           htmlFor="password"
           className="block text-sm font-medium text-gray-700 mb-1"
         >
-          Password
+          Şifre
         </label>
         <div className="relative">
           <input
@@ -71,7 +71,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="input-field pr-10"
-            placeholder="Enter your password"
+            placeholder="Şifrenizi girin"
             required
             autoComplete="current-password"
           />
@@ -95,7 +95,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         isLoading={isLoading}
         disabled={!username || !password}
       >
-        Sign In
+        Giriş Yap
       </Button>
     </form>
   );

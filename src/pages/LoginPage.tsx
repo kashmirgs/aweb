@@ -28,9 +28,9 @@ export function LoginPage() {
                 <Logo variant="light" className="h-8" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-dark">Welcome Back</h1>
+            <h1 className="text-2xl font-bold text-dark">Tekrar Hoş Geldiniz</h1>
             <p className="text-gray-600 mt-2">
-              Sign in to your Enterprise AI Assistant
+              Kurumsal AI Asistanınıza giriş yapın
             </p>
           </div>
 

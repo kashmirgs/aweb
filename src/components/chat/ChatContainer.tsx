@@ -69,7 +69,7 @@ export function ChatContainer() {
               {starters.length > 0 && (
                 <div className="w-full max-w-2xl mb-8">
                   <p className="text-sm font-medium text-gray-500 mb-3 text-center">
-                    Try asking
+                    Şunları sorabilirsiniz
                   </p>
                   <div className="flex flex-wrap gap-2 justify-center">
                     {starters.map((starter: ConversationStarter) => (

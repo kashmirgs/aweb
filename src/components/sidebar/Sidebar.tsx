@@ -56,7 +56,7 @@ export function Sidebar({ isOpen, onToggle, mode = 'chat' }: SidebarProps) {
               <button
                 onClick={onToggle}
                 className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                title="Close sidebar"
+                title="Kenar çubuğunu kapat"
               >
                 <PanelLeftClose className="h-5 w-5 text-gray-500" />
               </button>
@@ -70,7 +70,7 @@ export function Sidebar({ isOpen, onToggle, mode = 'chat' }: SidebarProps) {
                 disabled={!selectedAgent}
               >
                 <Plus className="h-4 w-4" />
-                New Chat
+                Yeni Sohbet
               </Button>
             )}
           </div>

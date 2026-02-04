@@ -51,12 +51,12 @@ export function ModelsTab() {
   const columns: Column<LocalLLM>[] = [
     {
       key: 'model_key',
-      header: 'Model Key',
+      header: 'Model Anahtarı',
       render: (model) => <span className="font-medium">{model.model_key}</span>,
     },
     {
       key: 'hf_name',
-      header: 'HuggingFace Model',
+      header: 'HuggingFace Modeli',
       render: (model) => (
         <span className="text-gray-600 truncate max-w-xs block" title={model.hf_name}>
           {model.hf_name}
@@ -84,14 +84,14 @@ export function ModelsTab() {
     },
     {
       key: 'instances',
-      header: 'Instance',
+      header: 'Örnek',
       render: (model) => (
         <span className="text-gray-600">{getInstanceCount(model.id)}</span>
       ),
     },
     {
       key: 'actions',
-      header: 'Islemler',
+      header: 'İşlemler',
       className: 'text-right',
       render: (model) => (
         <div className="flex items-center justify-end gap-2">
@@ -102,7 +102,7 @@ export function ModelsTab() {
               e.stopPropagation();
               setSelectedModel(model);
             }}
-            title="Yukle"
+            title="Yükle"
           >
             <Upload className="h-4 w-4" />
           </Button>
@@ -115,7 +115,7 @@ export function ModelsTab() {
                 handleDownload(model);
               }}
               disabled={downloadingId === model.id}
-              title="Indir"
+              title="İndir"
             >
               {downloadingId === model.id ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -155,7 +155,7 @@ export function ModelsTab() {
         data={models}
         keyExtractor={(model) => model.id}
         isLoading={isLoadingModels}
-        emptyMessage="Henuz model tanimlanmamis"
+        emptyMessage="Henüz model tanımlanmamış"
       />
 
       {/* Load Model Modal */}

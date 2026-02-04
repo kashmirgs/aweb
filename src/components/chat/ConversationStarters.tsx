@@ -30,10 +30,10 @@ export function ConversationStarters() {
           <Sparkles className="h-8 w-8 text-gray-400" />
         </div>
         <h2 className="text-xl font-semibold text-dark mb-2">
-          Welcome to UpperMind
+          UpperMind'e Hoş Geldiniz
         </h2>
         <p className="text-gray-500 max-w-md">
-          Select an AI agent from the sidebar to start a conversation
+          Sohbete başlamak için kenar çubuğundan bir AI ajanı seçin
         </p>
       </div>
     );
@@ -60,7 +60,7 @@ export function ConversationStarters() {
       {starters.length > 0 && (
         <div className="w-full max-w-2xl">
           <p className="text-sm font-medium text-gray-500 mb-3 text-center">
-            Try asking
+            Şunları sorabilirsiniz
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
             {starters.map((starter: ConversationStarter) => (

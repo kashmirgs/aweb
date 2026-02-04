@@ -67,9 +67,9 @@ export function ConversationList() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-gray-500 p-4">
         <MessageSquare className="h-8 w-8 mb-2 opacity-50" />
-        <p className="text-sm text-center">No conversations yet</p>
+        <p className="text-sm text-center">Henüz sohbet yok</p>
         <p className="text-xs text-center mt-1">
-          Start a new chat to get started
+          Başlamak için yeni bir sohbet başlatın
         </p>
       </div>
     );
@@ -109,12 +109,12 @@ export function ConversationList() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (confirm('Delete this conversation?')) {
+                      if (confirm('Bu sohbeti silmek istiyor musunuz?')) {
                         deleteConversation(conversation.id);
                       }
                     }}
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded hover:bg-red-100 text-gray-400 hover:text-red-600 transition-colors"
-                    title="Delete conversation"
+                    title="Sohbeti sil"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

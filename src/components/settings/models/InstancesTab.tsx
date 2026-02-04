@@ -10,14 +10,14 @@ import type { LocalLLMInstance } from '../../../types/localLlm';
 const statusLabels: Record<string, { label: string; color: string }> = {
   // API runtime_state values (uppercase)
   READY: { label: 'Aktif', color: 'bg-green-100 text-green-700' },
-  LOADING: { label: 'Yukleniyor', color: 'bg-blue-100 text-blue-700' },
+  LOADING: { label: 'Yükleniyor', color: 'bg-blue-100 text-blue-700' },
   STOPPED: { label: 'Durduruldu', color: 'bg-gray-100 text-gray-700' },
   ERROR: { label: 'Hata', color: 'bg-red-100 text-red-700' },
   // Local optimistic update values (lowercase)
   pending: { label: 'Bekliyor', color: 'bg-gray-100 text-gray-700' },
-  loading: { label: 'Yukleniyor', color: 'bg-blue-100 text-blue-700' },
+  loading: { label: 'Yükleniyor', color: 'bg-blue-100 text-blue-700' },
   loaded: { label: 'Aktif', color: 'bg-green-100 text-green-700' },
-  unloading: { label: 'Kaldiriliyor', color: 'bg-yellow-100 text-yellow-700' },
+  unloading: { label: 'Kaldırılıyor', color: 'bg-yellow-100 text-yellow-700' },
   error: { label: 'Hata', color: 'bg-red-100 text-red-700' },
 };
 
@@ -69,7 +69,7 @@ export function InstancesTab() {
   const columns: Column<LocalLLMInstance>[] = [
     {
       key: 'name',
-      header: 'Instance Adi',
+      header: 'Instance Adı',
       render: (instance) => (
         <span className="font-medium">
           {instance.name || `Instance #${instance.id}`}
@@ -128,7 +128,7 @@ export function InstancesTab() {
     },
     {
       key: 'actions',
-      header: 'Islemler',
+      header: 'İşlemler',
       className: 'text-right',
       render: (instance) => {
         // Check both runtime_state (API) and status (optimistic updates)
@@ -148,7 +148,7 @@ export function InstancesTab() {
                   handleUnload(instance);
                 }}
                 disabled={!isActionable || isCurrentAction}
-                title="Kaldir"
+                title="Kaldır"
               >
                 {isCurrentAction ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -165,7 +165,7 @@ export function InstancesTab() {
                   handleLoad(instance);
                 }}
                 disabled={!isActionable || isCurrentAction}
-                title="Yukle"
+                title="Yükle"
               >
                 {isCurrentAction ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -182,7 +182,7 @@ export function InstancesTab() {
                 setInstanceToDelete(instance);
               }}
               disabled={isLoaded || !isActionable}
-              title={isLoaded ? 'Once kaldirin' : 'Sil'}
+              title={isLoaded ? 'Önce kaldırın' : 'Sil'}
               className="text-red-600 hover:text-red-700 hover:bg-red-50"
             >
               <Trash2 className="h-4 w-4" />
@@ -206,7 +206,7 @@ export function InstancesTab() {
         data={instances}
         keyExtractor={(instance) => instance.id}
         isLoading={isLoadingInstances}
-        emptyMessage="Henuz instance olusturulmamis"
+        emptyMessage="Henüz instance oluşturulmamış"
       />
 
       {/* Delete Confirmation */}
