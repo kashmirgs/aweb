@@ -150,7 +150,7 @@ export function MessageInput({ variant = 'default' }: MessageInputProps) {
           </button>
         </div>
         <p className="text-xs text-gray-400 text-center mt-2">
-          Göndermek için Enter, yeni satır için Shift+Enter
+          {selectedAgent?.warning_message || 'Göndermek için Enter, yeni satır için Shift+Enter'}
         </p>
       </form>
     </div>
