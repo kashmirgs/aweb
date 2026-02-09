@@ -25,8 +25,12 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('access_token');
-      window.location.href = '/login';
+      const url = error.config?.url || '';
+      const skipLogout = url.includes('/auth/token') || url.includes('/auth/user/change_password');
+      if (!skipLogout) {
+        localStorage.removeItem('access_token');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

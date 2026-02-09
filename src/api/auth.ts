@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { AuthResponse, User, Permission } from '../types';
+import type { AuthResponse, User, Permission, UpdateUserRequest } from '../types';
 
 export const authApi = {
   async login(username: string, password: string): Promise<AuthResponse> {
@@ -22,6 +22,18 @@ export const authApi = {
 
   async getPermissions(): Promise<Permission[]> {
     const response = await apiClient.get<Permission[]>('/auth/permissions/me');
+    return response.data;
+  },
+
+  async changePassword(password: string, newPassword: string): Promise<void> {
+    await apiClient.post('/auth/user/change_password', {
+      password,
+      new_password: newPassword,
+    });
+  },
+
+  async updateProfile(data: UpdateUserRequest): Promise<User> {
+    const response = await apiClient.put<User>('/admin/users', data);
     return response.data;
   },
 };

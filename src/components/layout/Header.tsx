@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore, useAgentStore, usePermissionStore } from '../../stores';
 import { Avatar } from '../common';
-import { LogOut, ChevronDown, PanelLeft, Settings } from 'lucide-react';
+import { LogOut, ChevronDown, PanelLeft, Settings, UserCircle } from 'lucide-react';
+import { ProfileModal } from '../profile';
 
 interface HeaderProps {
   sidebarOpen?: boolean;
@@ -12,6 +13,7 @@ interface HeaderProps {
 
 export function Header({ sidebarOpen = true, onToggleSidebar, hideAgentInfo = false }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
@@ -93,6 +95,17 @@ export function Header({ sidebarOpen = true, onToggleSidebar, hideAgentInfo = fa
             <button
               onClick={() => {
                 setIsMenuOpen(false);
+                setIsProfileOpen(true);
+              }}
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <UserCircle className="h-4 w-4" />
+              Profilim
+            </button>
+
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
                 navigate('/settings');
               }}
               className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -115,6 +128,8 @@ export function Header({ sidebarOpen = true, onToggleSidebar, hideAgentInfo = fa
           </div>
         )}
       </div>
+
+      <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </header>
   );
 }

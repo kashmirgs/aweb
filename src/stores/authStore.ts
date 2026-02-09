@@ -6,22 +6,21 @@ import axios from 'axios';
 function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
     if (error.code === 'ERR_NETWORK') {
-      return 'Unable to connect to server. Please check your connection.';
+      return 'Sunucuya bağlanılamadı. Lütfen bağlantınızı kontrol edin.';
     }
     if (error.response) {
       const status = error.response.status;
-      if (status === 401) return 'Invalid username or password';
-      if (status === 403) return 'Access denied';
-      if (status === 404) return 'Service not found';
-      if (status >= 500) return 'Server error. Please try again later.';
-      return error.response.data?.detail || error.response.data?.message || 'Login failed';
+      if (status === 401 || status === 404) return 'Kullanıcı adı veya şifre hatalı';
+      if (status === 403) return 'Erişim reddedildi';
+      if (status >= 500) return 'Sunucu hatası. Lütfen daha sonra tekrar deneyin.';
+      return error.response.data?.detail || error.response.data?.message || 'Giriş başarısız';
     }
     return error.message;
   }
   if (error instanceof Error) {
     return error.message;
   }
-  return 'An unexpected error occurred';
+  return 'Beklenmeyen bir hata oluştu';
 }
 
 interface AuthState {
@@ -35,6 +34,7 @@ interface AuthState {
   logout: () => void;
   checkAuth: () => Promise<boolean>;
   clearError: () => void;
+  setUser: (user: User) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -98,6 +98,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  setUser: (user: User) => set({ user }),
 }));
 
 export default useAuthStore;
