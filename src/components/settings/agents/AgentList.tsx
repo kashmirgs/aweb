@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { Edit2, Trash2, Plus } from 'lucide-react';
 import { Table } from '../../common/Table';
-import type { Column } from '../../common/Table';
+import type { Column, SortConfig } from '../../common/Table';
 import { Badge } from '../../common/Badge';
 import { Button } from '../../common/Button';
 import { ConfirmModal } from '../../common/Modal';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { Agent } from '../../../types';
 import { usePermissionStore, useAgentStore } from '../../../stores';
 import { formatDate } from '../../../lib/utils';
@@ -28,12 +28,45 @@ export function AgentList({
   const { deleteAgent, isSaving } = useAgentStore();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [agentToDelete, setAgentToDelete] = useState<Agent | null>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'name', direction: 'asc' });
+
+  const handleSort = (key: string) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
 
   const filteredAgents = agents.filter(
     (agent) =>
       agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       agent.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const sortedAgents = useMemo(() => {
+    return [...filteredAgents].sort((a, b) => {
+      const key = sortConfig.key as keyof Agent;
+      const aVal = a[key];
+      const bVal = b[key];
+
+      let comparison = 0;
+
+      if (typeof aVal === 'boolean' && typeof bVal === 'boolean') {
+        comparison = aVal === bVal ? 0 : aVal ? -1 : 1;
+      } else if (key === 'created_at') {
+        // Date string comparison for created_at
+        const aDate = aVal ? new Date(aVal as string).getTime() : 0;
+        const bDate = bVal ? new Date(bVal as string).getTime() : 0;
+        comparison = aDate - bDate;
+      } else if (typeof aVal === 'string' && typeof bVal === 'string') {
+        comparison = aVal.localeCompare(bVal, 'tr');
+      } else {
+        comparison = String(aVal ?? '').localeCompare(String(bVal ?? ''), 'tr');
+      }
+
+      return sortConfig.direction === 'asc' ? comparison : -comparison;
+    });
+  }, [filteredAgents, sortConfig]);
 
   const handleDelete = async () => {
     if (agentToDelete) {
@@ -49,6 +82,7 @@ export function AgentList({
     {
       key: 'name',
       header: 'Ajan Adı',
+      sortable: true,
       render: (agent) => (
         <div className="font-medium text-gray-900">{agent.name}</div>
       ),
@@ -65,6 +99,7 @@ export function AgentList({
     {
       key: 'interactive',
       header: 'İnteraktif',
+      sortable: true,
       render: (agent) => (
         <Badge variant={agent.interactive ? 'success' : 'default'}>
           {agent.interactive ? 'Evet' : 'Hayır'}
@@ -74,6 +109,7 @@ export function AgentList({
     {
       key: 'active',
       header: 'Durum',
+      sortable: true,
       render: (agent) => (
         <Badge variant={agent.active ? 'success' : 'danger'}>
           {agent.active ? 'Aktif' : 'Pasif'}
@@ -83,6 +119,7 @@ export function AgentList({
     {
       key: 'created_at',
       header: 'Oluşturulma',
+      sortable: true,
       render: (agent) => (
         <span className="text-gray-500">
           {agent.created_at ? formatDate(agent.created_at) : '-'}
@@ -146,11 +183,13 @@ export function AgentList({
 
       <Table
         columns={columns}
-        data={filteredAgents}
+        data={sortedAgents}
         keyExtractor={(agent) => agent.id}
         onRowClick={(agent) => canEdit(agent.id) && navigate(`/settings/agents/${agent.id}`)}
         isLoading={isLoading}
         emptyMessage="Ajan bulunamadı"
+        sortConfig={sortConfig}
+        onSort={handleSort}
       />
 
       <ConfirmModal

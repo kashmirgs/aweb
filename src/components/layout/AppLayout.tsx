@@ -46,10 +46,11 @@ export function AppLayout() {
     }
   }, [isAuthenticated, user, fetchAgents, fetchConversations, fetchPermissions, permissions]);
 
-  // Protect /settings/models route - super admin only
+  // Protect super admin only routes
   useEffect(() => {
+    const superAdminRoutes = ['/settings/models', '/settings/users'];
     if (
-      location.pathname === '/settings/models' &&
+      superAdminRoutes.some(route => location.pathname.startsWith(route)) &&
       permissions &&
       !permissions.is_super_admin
     ) {

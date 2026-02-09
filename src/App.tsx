@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from './components/layout';
-import { LoginPage, ChatPage, HomePage, AgentListPage, AgentEditPage, AgentCreatePage, ModelManagementPage } from './pages';
+import { LoginPage, ChatPage, HomePage, AgentListPage, AgentEditPage, AgentCreatePage, ModelManagementPage, UserListPage, UserCreatePage, UserEditPage } from './pages';
 
 function App() {
   return (
@@ -15,6 +15,9 @@ function App() {
             <Route path="agents" element={<AgentListPage />} />
             <Route path="agents/new" element={<AgentCreatePage />} />
             <Route path="agents/:id" element={<AgentEditPage />} />
+            <Route path="users" element={<UserListPage />} />
+            <Route path="users/new" element={<UserCreatePage />} />
+            <Route path="users/:id" element={<UserEditPage />} />
             <Route path="models" element={<ModelManagementPage />} />
           </Route>
         </Route>

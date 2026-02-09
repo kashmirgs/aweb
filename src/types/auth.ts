@@ -3,6 +3,11 @@ export interface User {
   username: string;
   email: string;
   name?: string;
+  surname?: string;
+  department_name?: string;
+  phone?: string;
+  foreign_id?: string;
+  ad_user?: boolean;
   created_at?: string;
 }
 

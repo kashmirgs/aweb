@@ -2,7 +2,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { Logo, Button } from '../common';
 import { ConversationList } from './ConversationList';
 import { useChatStore, useAgentStore, usePermissionStore } from '../../stores';
-import { Plus, PanelLeftClose, Bot, Cpu } from 'lucide-react';
+import { Plus, PanelLeftClose, Bot, Cpu, Users } from 'lucide-react';
 // PanelLeft removed - was unused
 import { cn } from '../../lib/utils';
 
@@ -97,20 +97,36 @@ export function Sidebar({ isOpen, onToggle, mode = 'chat' }: SidebarProps) {
                   Ajanlar
                 </NavLink>
                 {isSuperAdmin() && (
-                  <NavLink
-                    to="/settings/models"
-                    className={({ isActive }) =>
-                      cn(
-                        'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                        isActive
-                          ? 'bg-primary-50 text-primary'
-                          : 'text-gray-700 hover:bg-gray-100'
-                      )
-                    }
-                  >
-                    <Cpu className="h-5 w-5" />
-                    Model Yonetimi
-                  </NavLink>
+                  <>
+                    <NavLink
+                      to="/settings/models"
+                      className={({ isActive }) =>
+                        cn(
+                          'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                          isActive
+                            ? 'bg-primary-50 text-primary'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        )
+                      }
+                    >
+                      <Cpu className="h-5 w-5" />
+                      Model Yonetimi
+                    </NavLink>
+                    <NavLink
+                      to="/settings/users"
+                      className={({ isActive }) =>
+                        cn(
+                          'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                          isActive
+                            ? 'bg-primary-50 text-primary'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        )
+                      }
+                    >
+                      <Users className="h-5 w-5" />
+                      Kullanıcılar
+                    </NavLink>
+                  </>
                 )}
               </nav>
             </div>

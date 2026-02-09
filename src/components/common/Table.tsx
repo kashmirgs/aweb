@@ -1,11 +1,17 @@
 import { cn } from '../../lib/utils';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 
 export interface Column<T> {
   key: string;
   header: string;
   render?: (item: T) => React.ReactNode;
   className?: string;
+  sortable?: boolean;
+}
+
+export interface SortConfig {
+  key: string;
+  direction: 'asc' | 'desc';
 }
 
 interface TableProps<T> {
@@ -16,6 +22,8 @@ interface TableProps<T> {
   isLoading?: boolean;
   emptyMessage?: string;
   className?: string;
+  sortConfig?: SortConfig;
+  onSort?: (key: string) => void;
 }
 
 export function Table<T>({
@@ -26,6 +34,8 @@ export function Table<T>({
   isLoading,
   emptyMessage = 'Veri bulunamadı',
   className,
+  sortConfig,
+  onSort,
 }: TableProps<T>) {
   if (isLoading) {
     return (
@@ -40,17 +50,45 @@ export function Table<T>({
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            {columns.map((column) => (
-              <th
-                key={column.key}
-                className={cn(
-                  'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
-                  column.className
-                )}
-              >
-                {column.header}
-              </th>
-            ))}
+            {columns.map((column) => {
+              const isSortable = column.sortable && onSort;
+              const isActive = sortConfig?.key === column.key;
+              return (
+                <th
+                  key={column.key}
+                  onClick={isSortable ? () => onSort(column.key) : undefined}
+                  className={cn(
+                    'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
+                    isSortable && 'cursor-pointer hover:bg-gray-100 select-none',
+                    column.className
+                  )}
+                >
+                  <div className="flex items-center gap-1">
+                    {column.header}
+                    {isSortable && (
+                      <span className="flex flex-col">
+                        <ChevronUp
+                          className={cn(
+                            'h-3 w-3 -mb-1',
+                            isActive && sortConfig?.direction === 'asc'
+                              ? 'text-primary'
+                              : 'text-gray-300'
+                          )}
+                        />
+                        <ChevronDown
+                          className={cn(
+                            'h-3 w-3 -mt-1',
+                            isActive && sortConfig?.direction === 'desc'
+                              ? 'text-primary'
+                              : 'text-gray-300'
+                          )}
+                        />
+                      </span>
+                    )}
+                  </div>
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">

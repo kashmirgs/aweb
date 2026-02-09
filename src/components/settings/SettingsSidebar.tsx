@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Bot, Cpu } from 'lucide-react';
+import { Bot, Cpu, Users } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { usePermissionStore } from '../../stores/permissionStore';
 
@@ -13,6 +13,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { to: '/settings/agents', label: 'Ajanlar', icon: <Bot className="h-5 w-5" /> },
   { to: '/settings/models', label: 'Model Yonetimi', icon: <Cpu className="h-5 w-5" />, superAdminOnly: true },
+  { to: '/settings/users', label: 'Kullanıcılar', icon: <Users className="h-5 w-5" />, superAdminOnly: true },
 ];
 
 export function SettingsSidebar() {
@@ -21,6 +22,13 @@ export function SettingsSidebar() {
   const visibleItems = navItems.filter(
     (item) => !item.superAdminOnly || isSuperAdmin()
   );
+
+  // Debug log
+  console.log('SettingsSidebar Debug:', {
+    navItems,
+    visibleItems,
+    isSuperAdmin: isSuperAdmin(),
+  });
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 min-h-full">

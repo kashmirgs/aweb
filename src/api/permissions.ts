@@ -1,9 +1,23 @@
 import apiClient from './client';
 import type { UserPermissions, LLMModel, UserAuthorization, GroupAuthorization } from '../types';
 
+export interface UserPermissionEntry {
+  chatbot_id: number | null;
+  scope: { id: number; name: string };
+}
+
+export interface UserPermissionsById {
+  permissions: UserPermissionEntry[];
+}
+
 export const permissionsApi = {
   async getUserPermissions(): Promise<UserPermissions> {
     const response = await apiClient.get<UserPermissions>('/auth/permissions/me');
+    return response.data;
+  },
+
+  async getUserPermissionsById(userId: number): Promise<UserPermissionsById> {
+    const response = await apiClient.get<UserPermissionsById>(`/auth/permissions/user/${userId}`);
     return response.data;
   },
 
@@ -19,7 +33,7 @@ export const permissionsApi = {
     }
   },
 
-  async grantPermission(userId: number, chatbotId: number, scopeId: number): Promise<void> {
+  async grantPermission(userId: number, chatbotId: number | null, scopeId: number): Promise<void> {
     await apiClient.post('/auth/permissions', {
       user_id: userId,
       chatbot_id: chatbotId,
@@ -27,7 +41,7 @@ export const permissionsApi = {
     });
   },
 
-  async revokePermission(userId: number, chatbotId: number, scopeId: number): Promise<void> {
+  async revokePermission(userId: number, chatbotId: number | null, scopeId: number): Promise<void> {
     await apiClient.delete('/auth/permissions', {
       data: {
         user_id: userId,
