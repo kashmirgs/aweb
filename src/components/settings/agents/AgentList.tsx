@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { Edit2, Trash2, Plus } from 'lucide-react';
-import { Table } from '../../common/Table';
+import { Table, Pagination } from '../../common/Table';
 import type { Column, SortConfig } from '../../common/Table';
 import { Badge } from '../../common/Badge';
 import { Button } from '../../common/Button';
 import { ConfirmModal } from '../../common/Modal';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { Agent } from '../../../types';
 import { usePermissionStore, useAgentStore } from '../../../stores';
 import { formatDate } from '../../../lib/utils';
@@ -29,6 +29,9 @@ export function AgentList({
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [agentToDelete, setAgentToDelete] = useState<Agent | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'name', direction: 'asc' });
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const PAGE_SIZE = 30;
 
   const handleSort = (key: string) => {
     setSortConfig(prev => ({
@@ -39,8 +42,8 @@ export function AgentList({
 
   const filteredAgents = agents.filter(
     (agent) =>
-      agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      agent.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      agent.name.toLocaleLowerCase('tr-TR').includes(searchQuery.toLocaleLowerCase('tr-TR')) ||
+      agent.description?.toLocaleLowerCase('tr-TR').includes(searchQuery.toLocaleLowerCase('tr-TR'))
   );
 
   const sortedAgents = useMemo(() => {
@@ -67,6 +70,16 @@ export function AgentList({
       return sortConfig.direction === 'asc' ? comparison : -comparison;
     });
   }, [filteredAgents, sortConfig]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortConfig]);
+
+  const totalPages = Math.ceil(sortedAgents.length / PAGE_SIZE);
+  const paginatedAgents = sortedAgents.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   const handleDelete = async () => {
     if (agentToDelete) {
@@ -183,13 +196,19 @@ export function AgentList({
 
       <Table
         columns={columns}
-        data={sortedAgents}
+        data={paginatedAgents}
         keyExtractor={(agent) => agent.id}
         onRowClick={(agent) => canEdit(agent.id) && navigate(`/settings/agents/${agent.id}`)}
         isLoading={isLoading}
         emptyMessage="Ajan bulunamadı"
         sortConfig={sortConfig}
         onSort={handleSort}
+      />
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
       />
 
       <ConfirmModal
