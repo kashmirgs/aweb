@@ -29,12 +29,14 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  userImageVersion: number;
 
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   checkAuth: () => Promise<boolean>;
   clearError: () => void;
   setUser: (user: User) => void;
+  incrementUserImageVersion: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -43,6 +45,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: !!localStorage.getItem('access_token'),
   isLoading: false,
   error: null,
+  userImageVersion: Date.now(),
 
   login: async (username: string, password: string) => {
     set({ isLoading: true, error: null });
@@ -100,6 +103,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   clearError: () => set({ error: null }),
 
   setUser: (user: User) => set({ user }),
+
+  incrementUserImageVersion: () => set({ userImageVersion: Date.now() }),
 }));
 
 export default useAuthStore;

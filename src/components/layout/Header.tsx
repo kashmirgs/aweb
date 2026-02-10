@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore, useAgentStore, usePermissionStore } from '../../stores';
 import { Avatar } from '../common';
+import { authApi } from '../../api';
 import { LogOut, ChevronDown, PanelLeft, Settings, UserCircle } from 'lucide-react';
 import { ProfileModal } from '../profile';
 
@@ -16,7 +17,7 @@ export function Header({ sidebarOpen = true, onToggleSidebar, hideAgentInfo = fa
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
+  const { user, logout, userImageVersion } = useAuthStore();
   const { selectedAgent, getAgentImageUrl } = useAgentStore();
   const { clearPermissions } = usePermissionStore();
 
@@ -74,6 +75,7 @@ export function Header({ sidebarOpen = true, onToggleSidebar, hideAgentInfo = fa
           className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
           <Avatar
+            src={user ? authApi.getUserImageUrl(userImageVersion) : undefined}
             size="sm"
             fallback={user?.username || user?.name}
           />

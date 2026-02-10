@@ -1,5 +1,6 @@
 import apiClient from './client';
 import type { AuthResponse, User, Permission, UpdateUserRequest } from '../types';
+import { API_BASE_URL } from '../config/api';
 
 export const authApi = {
   async login(username: string, password: string): Promise<AuthResponse> {
@@ -35,6 +36,19 @@ export const authApi = {
   async updateProfile(data: UpdateUserRequest): Promise<User> {
     const response = await apiClient.put<User>('/admin/users', data);
     return response.data;
+  },
+
+  getUserImageUrl(version?: number | string): string {
+    const url = `${API_BASE_URL}/users/image`;
+    return version != null ? `${url}?v=${version}` : url;
+  },
+
+  async uploadUserImage(file: File): Promise<void> {
+    const formData = new FormData();
+    formData.append('file', file);
+    await apiClient.post('/users/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
   },
 };
 

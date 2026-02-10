@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
+import { Avatar } from '../common';
 import { useAuthStore } from '../../stores';
 import { authApi } from '../../api';
-import { UserCircle, KeyRound, ChevronDown, ChevronUp } from 'lucide-react';
+import { UserCircle, KeyRound, ChevronDown, ChevronUp, Camera } from 'lucide-react';
 import axios from 'axios';
 
 interface ProfileModalProps {
@@ -24,7 +25,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
-  const { user, setUser } = useAuthStore();
+  const { user, setUser, userImageVersion, incrementUserImageVersion } = useAuthStore();
 
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
@@ -39,6 +40,10 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [showPasswordSection, setShowPasswordSection] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -60,8 +65,25 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
       setShowPasswordSection(false);
       setPasswordSuccess('');
       setPasswordError('');
+      setAvatarFile(null);
+      setAvatarPreview(null);
     }
   }, [isOpen, user]);
+
+  // Cleanup blob URL for preview
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    };
+  }, [avatarPreview]);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarFile(file);
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
 
   const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,6 +102,14 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
         department_name: departmentName,
         phone,
       });
+
+      if (avatarFile) {
+        await authApi.uploadUserImage(avatarFile);
+        setAvatarFile(null);
+        setAvatarPreview(null);
+        incrementUserImageVersion();
+      }
+
       setUser(updatedUser);
       setProfileSuccess('Profil bilgileri güncellendi.');
     } catch (error) {
@@ -137,6 +167,46 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
           <div className="flex items-center gap-2 mb-4">
             <UserCircle className="h-5 w-5 text-gray-500" />
             <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Profil Bilgileri</h3>
+          </div>
+
+          {/* Avatar */}
+          <div className="flex items-center gap-4 mb-5">
+            <div className="relative group">
+              {avatarPreview ? (
+                <div className="h-16 w-16 rounded-full overflow-hidden bg-gray-200">
+                  <img
+                    src={avatarPreview}
+                    alt="Profil"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <Avatar
+                  src={user ? authApi.getUserImageUrl(userImageVersion) : undefined}
+                  alt="Profil"
+                  size="lg"
+                  className="h-16 w-16 text-xl"
+                  fallback={user?.name || user?.username}
+                />
+              )}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+              >
+                <Camera className="h-5 w-5 text-white" />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+              />
+            </div>
+            <div className="text-sm text-gray-500">
+              Fotoğrafı değiştirmek için üzerine tıklayın
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

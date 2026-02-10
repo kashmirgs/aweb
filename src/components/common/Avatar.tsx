@@ -40,6 +40,7 @@ export function Avatar({
 
       // If src is a relative API path, fetch through apiClient
       if (src.startsWith('/api/')) {
+        setHasError(false);
         try {
           const apiPath = src.replace('/api', '');
           const response = await apiClient.get(apiPath, {
