@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { Edit2, Trash2, Plus } from 'lucide-react';
-import { Table } from '../../common/Table';
+import { Table, Pagination } from '../../common/Table';
 import type { Column, SortConfig } from '../../common/Table';
 import { Button } from '../../common/Button';
 import { ConfirmModal } from '../../common/Modal';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { User } from '../../../types';
 import { useUserStore } from '../../../stores';
 import { formatDate } from '../../../lib/utils';
@@ -27,6 +27,9 @@ export function UserList({
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'username', direction: 'asc' });
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const PAGE_SIZE = 20;
 
   const handleSort = (key: string) => {
     setSortConfig(prev => ({
@@ -37,10 +40,10 @@ export function UserList({
 
   const filteredUsers = users.filter(
     (user) =>
-      user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.surname?.toLowerCase().includes(searchQuery.toLowerCase())
+      user.username.toLocaleLowerCase('tr-TR').includes(searchQuery.toLocaleLowerCase('tr-TR')) ||
+      user.email.toLocaleLowerCase('tr-TR').includes(searchQuery.toLocaleLowerCase('tr-TR')) ||
+      user.name?.toLocaleLowerCase('tr-TR').includes(searchQuery.toLocaleLowerCase('tr-TR')) ||
+      user.surname?.toLocaleLowerCase('tr-TR').includes(searchQuery.toLocaleLowerCase('tr-TR'))
   );
 
   const sortedUsers = useMemo(() => {
@@ -64,6 +67,16 @@ export function UserList({
       return sortConfig.direction === 'asc' ? comparison : -comparison;
     });
   }, [filteredUsers, sortConfig]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortConfig]);
+
+  const totalPages = Math.ceil(sortedUsers.length / PAGE_SIZE);
+  const paginatedUsers = sortedUsers.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   const handleDelete = async () => {
     if (userToDelete) {
@@ -171,13 +184,19 @@ export function UserList({
 
       <Table
         columns={columns}
-        data={sortedUsers}
+        data={paginatedUsers}
         keyExtractor={(user) => user.id}
         onRowClick={(user) => navigate(`/settings/users/${user.id}`)}
         isLoading={isLoading}
         emptyMessage="Kullanıcı bulunamadı"
         sortConfig={sortConfig}
         onSort={handleSort}
+      />
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
       />
 
       <ConfirmModal
