@@ -11,7 +11,7 @@ import { useState } from 'react';
 
 // Parse content to detect .assistantfinal marker and split thinking/response
 const parseContent = (content: string) => {
-  const marker = '.assistantfinal';
+  const marker = 'assistantfinal';
   const markerIndex = content.indexOf(marker);
 
   if (markerIndex === -1) {
