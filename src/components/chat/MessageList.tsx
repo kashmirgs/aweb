@@ -4,7 +4,7 @@ import { MessageBubble } from './MessageBubble';
 import type { Message } from '../../types';
 
 export function MessageList() {
-  const { messages, streamingContent, isSending } = useChatStore();
+  const { messages, streamingContent, streamingThinking, isSending } = useChatStore();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -24,6 +24,7 @@ export function MessageList() {
       role: 'assistant',
       sender_role: 'assistant',
       content: streamingContent,
+      thinking: streamingThinking || undefined,
     };
     displayMessages.push(streamingMessage);
   }

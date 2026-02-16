@@ -5,6 +5,7 @@ export interface Message {
   role?: 'user' | 'assistant' | 'system';
   sender_role?: 'user' | 'assistant' | 'system';
   content: string;
+  thinking?: string;
   chat_history_id?: number;
   created_at?: string;
   bot_reply?: boolean;

@@ -9,18 +9,26 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Check, ChevronDown, ChevronRight, Brain, FileText } from 'lucide-react';
 import { useState } from 'react';
 
-// Parse content to detect .assistantfinal marker and split thinking/response
-const parseContent = (content: string) => {
+// Parse content to detect thinking/response split
+// New format: message.thinking field is set directly
+// Old format: assistantfinal marker in content string (backward compat)
+const parseContent = (message: Message) => {
+  // New format: thinking field is set separately
+  if (message.thinking) {
+    return { thinking: message.thinking, response: message.content };
+  }
+
+  // Old format: assistantfinal marker in content
   const marker = 'assistantfinal';
-  const markerIndex = content.indexOf(marker);
+  const markerIndex = message.content.indexOf(marker);
 
   if (markerIndex === -1) {
-    return { thinking: null, response: content };
+    return { thinking: null, response: message.content };
   }
 
   return {
-    thinking: content.slice(0, markerIndex).trim(),
-    response: content.slice(markerIndex + marker.length).trim()
+    thinking: message.content.slice(0, markerIndex).trim(),
+    response: message.content.slice(markerIndex + marker.length).trim()
   };
 };
 
@@ -42,7 +50,7 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
 
   const role = message.role || message.sender_role;
   const isUser = role === 'user';
-  const { thinking, response } = isUser ? { thinking: null, response: message.content } : parseContent(message.content);
+  const { thinking, response } = isUser ? { thinking: null, response: message.content } : parseContent(message);
 
   const copyToClipboard = (code: string) => {
     navigator.clipboard.writeText(code);

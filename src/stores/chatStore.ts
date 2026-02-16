@@ -10,6 +10,7 @@ interface ChatState {
   isLoading: boolean;
   isSending: boolean;
   streamingContent: string;
+  streamingThinking: string;
   error: string | null;
   abortController: AbortController | null;
 
@@ -29,6 +30,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isLoading: false,
   isSending: false,
   streamingContent: '',
+  streamingThinking: '',
   error: null,
   abortController: null,
 
@@ -139,11 +141,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
       messages: [...state.messages, userMessage],
       isSending: true,
       streamingContent: '',
+      streamingThinking: '',
       error: null,
       abortController,
     }));
 
     let fullContent = '';
+    let fullThinking = '';
 
     await chatApi.sendMessage(
       {
@@ -152,29 +156,37 @@ export const useChatStore = create<ChatState>((set, get) => ({
         bot_id: botId,
         streaming: true,
       },
-      (chunk) => {
-        fullContent += chunk;
-        set({ streamingContent: fullContent });
+      (delta, type) => {
+        if (type === 'thinking') {
+          fullThinking += delta;
+          set({ streamingThinking: fullThinking });
+        } else {
+          fullContent += delta;
+          set({ streamingContent: fullContent });
+        }
       },
       () => {
         // Complete - add assistant message if we have content
-        if (fullContent) {
+        if (fullContent || fullThinking) {
           const assistantMessage: Message = {
             role: 'assistant',
             sender_role: 'assistant',
             content: fullContent,
+            thinking: fullThinking || undefined,
             chat_history_id: chatHistoryId,
           };
           set((state) => ({
             messages: [...state.messages, assistantMessage],
             isSending: false,
             streamingContent: '',
+            streamingThinking: '',
             abortController: null,
           }));
         } else {
           set({
             isSending: false,
             streamingContent: '',
+            streamingThinking: '',
             abortController: null,
           });
         }
@@ -184,6 +196,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           error: error.message,
           isSending: false,
           streamingContent: '',
+          streamingThinking: '',
           abortController: null,
         });
       },
@@ -192,36 +205,39 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   stopStreaming: () => {
-    const { abortController, streamingContent, messages } = get();
+    const { abortController, streamingContent, streamingThinking, messages } = get();
     if (abortController) {
       abortController.abort();
     }
     // If we have partial content, save it as a message
-    if (streamingContent) {
+    if (streamingContent || streamingThinking) {
       const currentConversation = get().currentConversation;
       const assistantMessage: Message = {
         role: 'assistant',
         sender_role: 'assistant',
         content: streamingContent,
+        thinking: streamingThinking || undefined,
         chat_history_id: currentConversation?.id,
       };
       set({
         messages: [...messages, assistantMessage],
         isSending: false,
         streamingContent: '',
+        streamingThinking: '',
         abortController: null,
       });
     } else {
       set({
         isSending: false,
         streamingContent: '',
+        streamingThinking: '',
         abortController: null,
       });
     }
   },
 
   clearCurrentConversation: () => {
-    set({ currentConversation: null, messages: [], streamingContent: '' });
+    set({ currentConversation: null, messages: [], streamingContent: '', streamingThinking: '' });
   },
 }));
 
