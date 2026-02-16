@@ -36,15 +36,21 @@ export function AppLayout() {
     }
   }, [isAuthenticated, isChecking, navigate]);
 
+  // Fetch agents and conversations on auth
   useEffect(() => {
     if (isAuthenticated && user) {
       fetchAgents();
       fetchConversations();
-      if (!permissions) {
-        fetchPermissions();
-      }
     }
-  }, [isAuthenticated, user, fetchAgents, fetchConversations, fetchPermissions, permissions]);
+  }, [isAuthenticated, user, fetchAgents, fetchConversations]);
+
+  // Fetch permissions independently (no permissions in deps to avoid re-triggering fetchConversations)
+  useEffect(() => {
+    if (isAuthenticated && user && !permissions) {
+      fetchPermissions();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user]);
 
   // Protect super admin only routes
   useEffect(() => {
