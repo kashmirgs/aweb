@@ -58,7 +58,15 @@ export const useUserStore = create<UserState>((set) => ({
       }));
       return user;
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Kullanıcı oluşturulamadı';
+      let message = 'Kullanıcı oluşturulamadı';
+      if (error instanceof Error) {
+        const status = (error as any).response?.status;
+        if (status === 409) {
+          message = 'Bu kullanıcı adı zaten kullanılıyor';
+        } else {
+          message = error.message;
+        }
+      }
       set({ error: message, isSaving: false });
       return null;
     }
@@ -75,7 +83,15 @@ export const useUserStore = create<UserState>((set) => ({
       }));
       return user;
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Kullanıcı güncellenemedi';
+      let message = 'Kullanıcı güncellenemedi';
+      if (error instanceof Error) {
+        const status = (error as any).response?.status;
+        if (status === 409) {
+          message = 'Bu kullanıcı adı zaten kullanılıyor';
+        } else {
+          message = error.message;
+        }
+      }
       set({ error: message, isSaving: false });
       return null;
     }
