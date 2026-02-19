@@ -1,14 +1,36 @@
-import { useChatStore, useAgentStore } from '../../stores';
+import { useChatStore, useAgentStore, useLocalLlmStore } from '../../stores';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { Avatar } from '../common';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, AlertTriangle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import type { ConversationStarter } from '../../types';
 
 export function ChatContainer() {
   const { currentConversation, messages, isSending, streamingContent, sendMessage, createConversation } = useChatStore();
   const { selectedAgent, starters, getAgentImageUrl } = useAgentStore();
+  const { instances, isLoadingInstances } = useLocalLlmStore();
+
+  const agentInstance = selectedAgent?.local_llm_instance_id
+    ? instances.find(i => i.id === selectedAgent.local_llm_instance_id)
+    : null;
+
+  const modelWarning = selectedAgent?.local_llm_instance_id
+    ? isLoadingInstances
+      ? null
+      : !agentInstance
+        ? 'Bu ajana atanan model bulunamadı.'
+        : (() => {
+            const state = agentInstance.runtime_state || agentInstance.status || 'STOPPED';
+            const isLoaded = state === 'READY' || state === 'loaded';
+            const isLoading = state === 'LOADING' || state === 'loading';
+            const isError = state === 'ERROR' || state === 'error';
+            if (isLoaded) return null;
+            if (isLoading) return 'Model yükleniyor, lütfen bekleyin...';
+            if (isError) return 'Model yüklenirken hata oluştu. Lütfen yönetici ile iletişime geçin.';
+            return 'Bu ajanın modeli şu an yüklü değil. Mesajlarınız yanıtlanamayabilir.';
+          })()
+    : null;
 
   // Show starters only when no conversation is active and no messages
   const hasActiveChat = currentConversation || messages.length > 0 || isSending || streamingContent;
@@ -50,6 +72,14 @@ export function ChatContainer() {
           ) : (
             // Agent selected - show centered content with MessageInput
             <>
+              {modelWarning && (
+                <div className="mx-auto max-w-3xl w-full px-4 pb-4">
+                  <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
+                    <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                    <span>{modelWarning}</span>
+                  </div>
+                </div>
+              )}
               <div className="text-center mb-8">
                 <Avatar
                   src={getAgentImageUrl(selectedAgent.id)}
@@ -103,6 +133,14 @@ export function ChatContainer() {
   // Normal layout with MessageInput at bottom
   return (
     <div className="h-full flex flex-col bg-white overflow-hidden">
+      {modelWarning && (
+        <div className="mx-auto max-w-3xl w-full px-4 pt-4">
+          <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
+            <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+            <span>{modelWarning}</span>
+          </div>
+        </div>
+      )}
       <MessageList />
       <MessageInput />
     </div>

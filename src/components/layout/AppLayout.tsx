@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar } from '../sidebar';
 import { Header } from './Header';
-import { useAuthStore, useAgentStore, useChatStore, usePermissionStore } from '../../stores';
+import { useAuthStore, useAgentStore, useChatStore, usePermissionStore, useLocalLlmStore } from '../../stores';
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -13,6 +13,7 @@ export function AppLayout() {
   const { fetchAgents } = useAgentStore();
   const { fetchConversations } = useChatStore();
   const { fetchPermissions, permissions } = usePermissionStore();
+  const { fetchInstances } = useLocalLlmStore();
 
   const isSettingsPage = location.pathname.startsWith('/settings');
 
@@ -41,8 +42,9 @@ export function AppLayout() {
     if (isAuthenticated && user) {
       fetchAgents();
       fetchConversations();
+      fetchInstances();
     }
-  }, [isAuthenticated, user, fetchAgents, fetchConversations]);
+  }, [isAuthenticated, user, fetchAgents, fetchConversations, fetchInstances]);
 
   // Fetch permissions independently (no permissions in deps to avoid re-triggering fetchConversations)
   useEffect(() => {
