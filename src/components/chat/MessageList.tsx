@@ -10,7 +10,7 @@ export function MessageList() {
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, streamingContent]);
+  }, [messages, streamingContent, streamingThinking]);
 
   // Filter out system messages (check both role and sender_role for API compatibility)
   const filteredMessages = messages.filter((m) => {
@@ -19,11 +19,11 @@ export function MessageList() {
   });
 
   const displayMessages = [...filteredMessages];
-  if (isSending && streamingContent) {
+  if (isSending && (streamingContent || streamingThinking)) {
     const streamingMessage: Message = {
       role: 'assistant',
       sender_role: 'assistant',
-      content: streamingContent,
+      content: streamingContent || '',
       thinking: streamingThinking || undefined,
     };
     displayMessages.push(streamingMessage);
@@ -41,11 +41,17 @@ export function MessageList() {
               index === displayMessages.length - 1 &&
               (message.role === 'assistant' || message.sender_role === 'assistant')
             }
+            isStreamingThinking={
+              isSending &&
+              index === displayMessages.length - 1 &&
+              !!streamingThinking &&
+              !streamingContent
+            }
           />
         ))}
 
         {/* Loading indicator when waiting for first chunk */}
-        {isSending && !streamingContent && (
+        {isSending && !streamingContent && !streamingThinking && (
           <div className="flex gap-3 py-4">
             <div className="flex-shrink-0">
               <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />

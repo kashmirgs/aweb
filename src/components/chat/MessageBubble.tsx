@@ -41,9 +41,10 @@ const stripAttachmentContent = (content: string): string => {
 interface MessageBubbleProps {
   message: Message;
   isStreaming?: boolean;
+  isStreamingThinking?: boolean;
 }
 
-export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
+export function MessageBubble({ message, isStreaming, isStreamingThinking }: MessageBubbleProps) {
   const { selectedAgent, getAgentImageUrl } = useAgentStore();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [isThinkingExpanded, setIsThinkingExpanded] = useState(false);
@@ -108,8 +109,34 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
           </div>
         ) : (
           <div className={cn('prose prose-sm max-w-none', !isUser && 'prose-gray')}>
-            {/* Collapsible Thinking Section */}
-            {thinking && (
+            {/* Streaming Thinking Indicator */}
+            {isStreamingThinking && thinking && (
+              <div>
+                <button
+                  onClick={() => setIsThinkingExpanded(!isThinkingExpanded)}
+                  className="flex items-center gap-1.5 text-sm font-medium text-purple-600 hover:text-purple-800 transition-colors mb-1"
+                >
+                  {isThinkingExpanded ? (
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  ) : (
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  )}
+                  <Brain className="h-3.5 w-3.5 animate-pulse" />
+                  <span>Düşünüyor...</span>
+                </button>
+                {isThinkingExpanded && (
+                  <div className="bg-purple-50 border border-purple-100 rounded-lg px-3 py-2 text-sm text-gray-600 italic">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {thinking}
+                    </ReactMarkdown>
+                    <span className="inline-block ml-1 animate-pulse text-purple-400">|</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Collapsible Thinking Section (completed) */}
+            {thinking && !isStreamingThinking && (
               <div className="mb-3">
                 <button
                   onClick={() => setIsThinkingExpanded(!isThinkingExpanded)}
