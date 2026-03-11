@@ -4,7 +4,7 @@ import { Button } from '../../common/Button';
 import { ConfirmModal } from '../../common/Modal';
 import { AddAuthorizationModal } from './AddAuthorizationModal';
 import { permissionsApi } from '../../../api/permissions';
-import type { UserAuthorization, GroupAuthorization } from '../../../types/permission';
+import type { UserAuthorization } from '../../../types/permission';
 
 interface AuthorizationTabProps {
   agentId: number;
@@ -38,7 +38,7 @@ const getScopeIdForDeletion = (auth: UserAuthorization): number => {
 
 export function AuthorizationTab({ agentId }: AuthorizationTabProps) {
   const [userAuthorizations, setUserAuthorizations] = useState<UserAuthorization[]>([]);
-  const [groupAuthorizations, setGroupAuthorizations] = useState<GroupAuthorization[]>([]);
+  const [groupAuthorizations, setGroupAuthorizations] = useState<{id: number; name: string; scope_id: number}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addModalType, setAddModalType] = useState<'user' | 'group'>('user');
@@ -54,12 +54,29 @@ export function AuthorizationTab({ agentId }: AuthorizationTabProps) {
   const fetchAuthorizations = async () => {
     setIsLoading(true);
     try {
-      const [users, groups] = await Promise.all([
-        permissionsApi.getAgentAuthorizations(agentId),
-        permissionsApi.getAgentGroupAuthorizations(agentId),
-      ]);
-      setUserAuthorizations(users);
-      setGroupAuthorizations(groups);
+      const users = await permissionsApi.getAgentAuthorizations(agentId);
+      // Separate direct users from group-based users
+      const directUsers: UserAuthorization[] = [];
+      const groupMap = new Map<number, {id: number; name: string; scope_id: number}>();
+      users.forEach(auth => {
+        let isDirect = false;
+        auth.scopes.forEach(scope => {
+          if (scope.via_group && scope.group) {
+            groupMap.set(scope.group.id, {
+              id: scope.group.id,
+              name: scope.group.name,
+              scope_id: scope.id,
+            });
+          } else {
+            isDirect = true;
+          }
+        });
+        if (isDirect) {
+          directUsers.push(auth);
+        }
+      });
+      setUserAuthorizations(directUsers);
+      setGroupAuthorizations(Array.from(groupMap.values()));
     } catch (error) {
       console.error('Failed to fetch authorizations:', error);
     } finally {
@@ -91,13 +108,13 @@ export function AuthorizationTab({ agentId }: AuthorizationTabProps) {
     });
   };
 
-  const handleDeleteGroupAuth = (auth: GroupAuthorization) => {
+  const handleDeleteGroupAuth = (auth: {id: number; name: string; scope_id: number}) => {
     setDeleteConfirm({
       isOpen: true,
       type: 'group',
-      id: auth.group_id,
-      name: auth.group_name,
-      scopeId: 3, // Groups typically have agent_user scope
+      id: auth.id,
+      name: auth.name,
+      scopeId: auth.scope_id,
     });
   };
 
@@ -265,14 +282,14 @@ export function AuthorizationTab({ agentId }: AuthorizationTabProps) {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {groupAuthorizations.map((auth) => (
-                  <tr key={auth.group_id} className="hover:bg-gray-50">
+                  <tr key={auth.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
                           <UsersRound className="h-4 w-4 text-green-600" />
                         </div>
                         <span className="text-sm font-medium text-gray-900">
-                          {auth.group_name}
+                          {auth.name}
                         </span>
                       </div>
                     </td>
@@ -301,7 +318,7 @@ export function AuthorizationTab({ agentId }: AuthorizationTabProps) {
         agentId={agentId}
         type={addModalType}
         existingUserIds={userAuthorizations.map((a) => a.user.id)}
-        existingGroupIds={groupAuthorizations.map((a) => a.group_id)}
+        existingGroupIds={groupAuthorizations.map((a) => a.id)}
       />
 
       {/* Delete Confirmation Modal */}

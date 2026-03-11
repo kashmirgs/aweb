@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { UserPermissions, LLMModel, UserAuthorization, GroupAuthorization } from '../types';
+import type { UserPermissions, LLMModel, UserAuthorization } from '../types';
 
 export interface UserPermissionEntry {
   chatbot_id: number | null;
@@ -74,8 +74,8 @@ export const permissionsApi = {
     });
   },
 
-  async getAgentGroupAuthorizations(agentId: number): Promise<GroupAuthorization[]> {
-    const response = await apiClient.get<GroupAuthorization[]>(`/auth/permissions/groups/${agentId}`);
+  async getAgentGroupAuthorizations(agentId: number): Promise<UserAuthorization[]> {
+    const response = await apiClient.get<UserAuthorization[]>(`/auth/permissions/groups/${agentId}`);
     return response.data;
   },
 };

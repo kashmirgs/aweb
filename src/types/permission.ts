@@ -29,6 +29,7 @@ export interface UserAuthorizationScope {
   name: string;
   description?: string;
   via_group: boolean;
+  group?: { id: number; name: string };
 }
 
 export interface UserAuthorization {

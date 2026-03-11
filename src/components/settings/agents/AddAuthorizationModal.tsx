@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
 import { Search, User as UserIcon, UsersRound, Shield } from 'lucide-react';
 import { Modal } from '../../common/Modal';
 import { Button } from '../../common/Button';
@@ -102,7 +103,11 @@ export function AddAuthorizationModal({
       onSuccess();
     } catch (error) {
       console.error('Failed to save authorization:', error);
-      setError('Yetkilendirme kaydedilirken bir hata oluştu');
+      if (axios.isAxiosError(error) && error.response?.data?.error?.code === 'perm.alreadyExists') {
+        setError(type === 'group' ? 'Bu grup zaten bu ajana yetkilendirilmiş' : 'Bu kullanıcı zaten bu ajana yetkilendirilmiş');
+      } else {
+        setError('Yetkilendirme kaydedilirken bir hata oluştu');
+      }
     } finally {
       setIsSaving(false);
     }
