@@ -56,7 +56,7 @@ export function AppLayout() {
 
   // Protect super admin only routes
   useEffect(() => {
-    const superAdminRoutes = ['/settings/models', '/settings/users'];
+    const superAdminRoutes = ['/settings/models', '/settings/users', '/settings/groups'];
     if (
       superAdminRoutes.some(route => location.pathname.startsWith(route)) &&
       permissions &&

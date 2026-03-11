@@ -69,4 +69,29 @@ export interface Group {
   name: string;
   description?: string;
   external_id?: string;
+  created_at?: string;
+}
+
+export interface CreateGroupRequest {
+  name: string;
+  description?: string;
+  external_id?: string;
+}
+
+export interface UpdateGroupRequest {
+  name?: string;
+  description?: string;
+  external_id?: string;
+}
+
+export interface GroupMember {
+  id: number;
+  username: string;
+  email: string;
+  name?: string;
+  surname?: string;
+  department_name?: string;
+  phone?: string;
+  foreign_id?: string;
+  created_at?: string;
 }

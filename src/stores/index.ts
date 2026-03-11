@@ -5,3 +5,4 @@ export { useAttachmentStore } from './attachmentStore';
 export { usePermissionStore } from './permissionStore';
 export { useLocalLlmStore } from './localLlmStore';
 export { useUserStore } from './userStore';
+export { useGroupStore } from './groupStore';

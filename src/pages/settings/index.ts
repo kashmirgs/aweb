@@ -5,3 +5,6 @@ export { ModelManagementPage } from './ModelManagementPage';
 export { UserListPage } from './UserListPage';
 export { UserCreatePage } from './UserCreatePage';
 export { UserEditPage } from './UserEditPage';
+export { GroupListPage } from './GroupListPage';
+export { GroupCreatePage } from './GroupCreatePage';
+export { GroupEditPage } from './GroupEditPage';

@@ -40,7 +40,7 @@ export function AddAuthorizationModal({
     if (isOpen) {
       setSearchQuery('');
       setSelectedId(null);
-      setSelectedScopeId(1);
+      setSelectedScopeId(3);
       setError(null);
       fetchData();
     }
