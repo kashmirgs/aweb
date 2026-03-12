@@ -15,7 +15,8 @@ import { useState } from 'react';
 const parseContent = (message: Message) => {
   // New format: thinking field is set separately
   if (message.thinking) {
-    return { thinking: message.thinking, response: message.content };
+    const { cleanContent, fileReferences } = extractFileReferences(message.content);
+    return { thinking: message.thinking, response: cleanContent, fileReferences };
   }
 
   // Old format: assistantfinal marker in content
@@ -23,12 +24,16 @@ const parseContent = (message: Message) => {
   const markerIndex = message.content.indexOf(marker);
 
   if (markerIndex === -1) {
-    return { thinking: null, response: message.content };
+    const { cleanContent, fileReferences } = extractFileReferences(message.content);
+    return { thinking: null, response: cleanContent, fileReferences };
   }
 
+  const rawResponse = message.content.slice(markerIndex + marker.length).trim();
+  const { cleanContent, fileReferences } = extractFileReferences(rawResponse);
   return {
     thinking: message.content.slice(0, markerIndex).trim(),
-    response: message.content.slice(markerIndex + marker.length).trim()
+    response: cleanContent,
+    fileReferences
   };
 };
 
@@ -36,6 +41,16 @@ const parseContent = (message: Message) => {
 const stripAttachmentContent = (content: string): string => {
   const pattern = /<!--ATTACHMENT_START-->[\s\S]*?<!--ATTACHMENT_END-->\n*---\n*/g;
   return content.replace(pattern, '').trim();
+};
+
+// Extract file references from assistant response
+const extractFileReferences = (content: string): { cleanContent: string; fileReferences: string[] } => {
+  const refs: string[] = [];
+  const cleanContent = content.replace(/<filename='([^']+)'>/g, (_, name) => {
+    refs.push(name);
+    return '';
+  });
+  return { cleanContent: cleanContent.trim(), fileReferences: refs };
 };
 
 interface MessageBubbleProps {
@@ -51,7 +66,7 @@ export function MessageBubble({ message, isStreaming, isStreamingThinking }: Mes
 
   const role = message.role || message.sender_role;
   const isUser = role === 'user';
-  const { thinking, response } = isUser ? { thinking: null, response: message.content } : parseContent(message);
+  const { thinking, response, fileReferences } = isUser ? { thinking: null, response: message.content, fileReferences: [] as string[] } : parseContent(message);
 
   const copyToClipboard = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -334,6 +349,21 @@ export function MessageBubble({ message, isStreaming, isStreamingThinking }: Mes
             >
               {response}
             </ReactMarkdown>
+
+            {/* File References */}
+            {fileReferences.length > 0 && (
+              <div className="mt-3 pt-2 border-t border-gray-200">
+                <span className="text-xs text-gray-500 font-medium">Kaynaklar</span>
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {fileReferences.map((filename, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-200 rounded text-xs text-gray-700">
+                      <FileText className="h-3 w-3" />
+                      {filename}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
