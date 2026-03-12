@@ -13,6 +13,8 @@ interface ChatState {
   streamingThinking: string;
   error: string | null;
   abortController: AbortController | null;
+  streamingConversationId: number | null;
+  savedPartialMessages: Record<number, Message>;
 
   fetchConversations: () => Promise<void>;
   selectConversation: (conversation: Conversation | null) => Promise<void>;
@@ -45,6 +47,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
   streamingThinking: '',
   error: null,
   abortController: null,
+  streamingConversationId: null,
+  savedPartialMessages: {},
 
   fetchConversations: async () => {
     try {
@@ -61,6 +65,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   selectConversation: async (conversation) => {
+    // Don't abort — let the stream continue in background.
+    // onComplete will save the finished message to savedPartialMessages
+    // since currentConversation will have changed by then.
+
     if (!conversation) {
       set({ currentConversation: null, messages: [] });
       return;
@@ -79,9 +87,22 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }
         return 0;
       });
+
+      // After loading messages, check for saved partial
+      const savedPartial = get().savedPartialMessages[conversation.id];
+      const finalMessages = savedPartial ? [...sortedMessages, savedPartial] : sortedMessages;
+
+      // Clean up the saved partial
+      if (savedPartial) {
+        set((state) => {
+          const { [conversation.id]: _, ...rest } = state.savedPartialMessages;
+          return { savedPartialMessages: rest };
+        });
+      }
+
       set({
         currentConversation: fullConversation,
-        messages: sortedMessages,
+        messages: finalMessages,
         isLoading: false,
       });
     } catch (error: unknown) {
@@ -122,10 +143,34 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   sendMessage: async (content: string, conversationId?: number, attachedContent?: string, attachments?: MessageAttachment[]) => {
-    const { currentConversation } = get();
+    const { currentConversation, abortController: existingController, streamingContent, streamingThinking, streamingConversationId } = get();
     const chatHistoryId = conversationId || currentConversation?.id;
     if (!chatHistoryId) {
       return;
+    }
+
+    // Abort any existing stream before starting a new one
+    if (existingController) {
+      // Save partial content before aborting
+      if ((streamingContent || streamingThinking) && streamingConversationId) {
+        const partialMessage: Message = {
+          role: 'assistant',
+          sender_role: 'assistant',
+          content: streamingContent,
+          thinking: streamingThinking || undefined,
+          chat_history_id: streamingConversationId,
+        };
+        // If still viewing same conversation, append to messages directly
+        if (streamingConversationId === currentConversation?.id) {
+          set((state) => ({ messages: [...state.messages, partialMessage] }));
+        } else {
+          // Save to cache for when user navigates back
+          set((state) => ({
+            savedPartialMessages: { ...state.savedPartialMessages, [streamingConversationId]: partialMessage },
+          }));
+        }
+      }
+      existingController.abort();
     }
 
     // Get bot_id from current conversation or selected agent
@@ -155,6 +200,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       streamingThinking: '',
       error: null,
       abortController,
+      streamingConversationId: chatHistoryId,
     }));
 
     let fullContent = '';
@@ -168,6 +214,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
         streaming: true,
       },
       (delta, type) => {
+        // Ignore deltas if another stream has taken over
+        if (get().streamingConversationId !== chatHistoryId) return;
         if (type === 'thinking') {
           fullThinking += delta;
           set({ streamingThinking: fullThinking });
@@ -177,6 +225,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }
       },
       () => {
+        const isStillActiveStream = get().streamingConversationId === chatHistoryId;
         // Complete - add assistant message if we have content
         if (fullContent || fullThinking) {
           const assistantMessage: Message = {
@@ -186,30 +235,45 @@ export const useChatStore = create<ChatState>((set, get) => ({
             thinking: fullThinking || undefined,
             chat_history_id: chatHistoryId,
           };
-          set((state) => ({
-            messages: [...state.messages, assistantMessage],
-            isSending: false,
-            streamingContent: '',
-            streamingThinking: '',
-            abortController: null,
-            conversations: bumpConversation(state.conversations, chatHistoryId),
-          }));
-        } else {
+          set((state) => {
+            const stillHere = state.currentConversation?.id === chatHistoryId;
+            return {
+              messages: stillHere ? [...state.messages, assistantMessage] : state.messages,
+              savedPartialMessages: stillHere
+                ? state.savedPartialMessages
+                : { ...state.savedPartialMessages, [chatHistoryId]: assistantMessage },
+              // Only reset streaming state if this is still the active stream
+              ...(isStillActiveStream ? {
+                isSending: false,
+                streamingContent: '',
+                streamingThinking: '',
+                abortController: null,
+                streamingConversationId: null,
+              } : {}),
+              conversations: bumpConversation(state.conversations, chatHistoryId),
+            };
+          });
+        } else if (isStillActiveStream) {
           set({
             isSending: false,
             streamingContent: '',
             streamingThinking: '',
             abortController: null,
+            streamingConversationId: null,
           });
         }
       },
       (error) => {
+        // Only reset streaming state if this is still the active stream
+        // (another sendMessage may have already started a new stream)
+        if (get().streamingConversationId !== chatHistoryId) return;
         set({
           error: error.message,
           isSending: false,
           streamingContent: '',
           streamingThinking: '',
           abortController: null,
+          streamingConversationId: null,
         });
       },
       abortController.signal
@@ -217,19 +281,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   stopStreaming: () => {
-    const { abortController, streamingContent, streamingThinking, messages } = get();
+    const { abortController, streamingContent, streamingThinking, messages, streamingConversationId, currentConversation } = get();
     if (abortController) {
       abortController.abort();
     }
-    // If we have partial content, save it as a message
-    if (streamingContent || streamingThinking) {
-      const currentConversation = get().currentConversation;
+    if ((streamingContent || streamingThinking) && streamingConversationId === currentConversation?.id) {
       const assistantMessage: Message = {
         role: 'assistant',
         sender_role: 'assistant',
         content: streamingContent,
         thinking: streamingThinking || undefined,
-        chat_history_id: currentConversation?.id,
+        chat_history_id: streamingConversationId,
       };
       set({
         messages: [...messages, assistantMessage],
@@ -237,6 +299,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         streamingContent: '',
         streamingThinking: '',
         abortController: null,
+        streamingConversationId: null,
       });
     } else {
       set({
@@ -244,12 +307,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
         streamingContent: '',
         streamingThinking: '',
         abortController: null,
+        streamingConversationId: null,
       });
     }
   },
 
   clearCurrentConversation: () => {
-    set({ currentConversation: null, messages: [], streamingContent: '', streamingThinking: '' });
+    set({ currentConversation: null, messages: [], streamingContent: '', streamingThinking: '', streamingConversationId: null });
   },
 }));
 

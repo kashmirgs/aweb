@@ -12,7 +12,7 @@ interface MessageInputProps {
 export function MessageInput({ variant = 'default' }: MessageInputProps) {
   const [input, setInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { sendMessage, isSending, currentConversation, createConversation, stopStreaming } = useChatStore();
+  const { sendMessage, isSending, currentConversation, createConversation, stopStreaming, streamingConversationId } = useChatStore();
   const { selectedAgent } = useAgentStore();
   const {
     attachments,
@@ -24,6 +24,7 @@ export function MessageInput({ variant = 'default' }: MessageInputProps) {
     error: _attachmentError,
   } = useAttachmentStore();
 
+  const isStreamingHere = isSending && streamingConversationId === currentConversation?.id;
   const maxToken = selectedAgent?.llm_settings?.max_token || 128000;
 
   // Auto-resize textarea
@@ -40,7 +41,7 @@ export function MessageInput({ variant = 'default' }: MessageInputProps) {
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
     const content = input.trim();
-    if (!content || isSending || !selectedAgent) return;
+    if (!content || isStreamingHere || !selectedAgent) return;
 
     // Validate token limit
     const validation = validateTotalSize(maxToken);
@@ -88,7 +89,7 @@ export function MessageInput({ variant = 'default' }: MessageInputProps) {
   };
 
   const hasReadyAttachments = attachments.some((a) => a.status === 'ready');
-  const isDisabled = !selectedAgent || isSending || (!input.trim() && !hasReadyAttachments) || isProcessing;
+  const isDisabled = !selectedAgent || isStreamingHere || (!input.trim() && !hasReadyAttachments) || isProcessing;
   const tokenValidation = validateTotalSize(maxToken);
 
   return (
@@ -107,7 +108,7 @@ export function MessageInput({ variant = 'default' }: MessageInputProps) {
 
         <div className="relative flex items-center gap-2 bg-gray-100 rounded-2xl p-2">
           {/* Attachment button */}
-          <FileAttachmentButton disabled={!selectedAgent || isSending} />
+          <FileAttachmentButton disabled={!selectedAgent || isStreamingHere} />
 
           <textarea
             ref={textareaRef}
@@ -119,7 +120,7 @@ export function MessageInput({ variant = 'default' }: MessageInputProps) {
                 ? `${selectedAgent.name} ile sohbet edin...`
                 : 'Sohbete başlamak için bir ajan seçin'
             }
-            disabled={!selectedAgent || isSending}
+            disabled={!selectedAgent || isStreamingHere}
             className={cn(
               'flex-1 resize-none bg-transparent px-3 py-2',
               'focus:outline-none',
@@ -130,19 +131,19 @@ export function MessageInput({ variant = 'default' }: MessageInputProps) {
             rows={1}
           />
           <button
-            type={isSending ? 'button' : 'submit'}
-            onClick={isSending ? stopStreaming : undefined}
-            disabled={!isSending && isDisabled}
+            type={isStreamingHere ? 'button' : 'submit'}
+            onClick={isStreamingHere ? stopStreaming : undefined}
+            disabled={!isStreamingHere && isDisabled}
             className={cn(
               'p-2.5 rounded-xl transition-colors',
-              isSending
+              isStreamingHere
                 ? 'bg-primary text-white hover:bg-primary-600'
                 : isDisabled
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-primary text-white hover:bg-primary-600'
             )}
           >
-            {isSending ? (
+            {isStreamingHere ? (
               <Square className="h-5 w-5" />
             ) : (
               <Send className="h-5 w-5" />

@@ -4,7 +4,7 @@ import { MessageBubble } from './MessageBubble';
 import type { Message } from '../../types';
 
 export function MessageList() {
-  const { messages, streamingContent, streamingThinking, isSending } = useChatStore();
+  const { messages, streamingContent, streamingThinking, isSending, streamingConversationId, currentConversation } = useChatStore();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -18,8 +18,10 @@ export function MessageList() {
     return role !== 'system';
   });
 
+  const isStreamingHere = isSending && streamingConversationId === currentConversation?.id;
+
   const displayMessages = [...filteredMessages];
-  if (isSending && (streamingContent || streamingThinking)) {
+  if (isStreamingHere && (streamingContent || streamingThinking)) {
     const streamingMessage: Message = {
       role: 'assistant',
       sender_role: 'assistant',
@@ -37,12 +39,12 @@ export function MessageList() {
             key={message.id || `msg-${index}`}
             message={message}
             isStreaming={
-              isSending &&
+              isStreamingHere &&
               index === displayMessages.length - 1 &&
               (message.role === 'assistant' || message.sender_role === 'assistant')
             }
             isStreamingThinking={
-              isSending &&
+              isStreamingHere &&
               index === displayMessages.length - 1 &&
               !!streamingThinking &&
               !streamingContent
@@ -51,7 +53,7 @@ export function MessageList() {
         ))}
 
         {/* Loading indicator when waiting for first chunk */}
-        {isSending && !streamingContent && !streamingThinking && (
+        {isStreamingHere && !streamingContent && !streamingThinking && (
           <div className="flex gap-3 py-4">
             <div className="flex-shrink-0">
               <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
