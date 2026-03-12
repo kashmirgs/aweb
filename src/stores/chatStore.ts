@@ -225,6 +225,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }
       },
       () => {
+        // Abort edilmiş ve artık aktif stream değilse, aborter zaten partial'ı kaydetti — skip
+        if (abortController.signal.aborted && get().streamingConversationId !== chatHistoryId) return;
+
         const isStillActiveStream = get().streamingConversationId === chatHistoryId;
         // Complete - add assistant message if we have content
         if (fullContent || fullThinking) {
@@ -313,7 +316,32 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   clearCurrentConversation: () => {
-    set({ currentConversation: null, messages: [], streamingContent: '', streamingThinking: '', streamingConversationId: null });
+    const { abortController, streamingContent, streamingThinking, streamingConversationId } = get();
+    // Aktif stream varsa partial mesajı kaydet ve abort et
+    if (abortController) {
+      if ((streamingContent || streamingThinking) && streamingConversationId) {
+        const partialMessage: Message = {
+          role: 'assistant',
+          sender_role: 'assistant',
+          content: streamingContent,
+          thinking: streamingThinking || undefined,
+          chat_history_id: streamingConversationId,
+        };
+        set((state) => ({
+          savedPartialMessages: { ...state.savedPartialMessages, [streamingConversationId]: partialMessage },
+        }));
+      }
+      abortController.abort();
+    }
+    set({
+      currentConversation: null,
+      messages: [],
+      isSending: false,
+      streamingContent: '',
+      streamingThinking: '',
+      streamingConversationId: null,
+      abortController: null,
+    });
   },
 }));
 
