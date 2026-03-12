@@ -4,6 +4,7 @@ import { groupConversationsByDate, cn, truncate } from '../../lib/utils';
 import { MessageSquare, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import type { Conversation } from '../../types';
+import { ConfirmModal } from '../common';
 
 export function ConversationList() {
   const navigate = useNavigate();
@@ -16,6 +17,8 @@ export function ConversationList() {
   } = useChatStore();
   const { selectAgent, getAgentById, fetchAgents } = useAgentStore();
   const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<number | null>(null);
 
   const handleConversationClick = async (conversation: Conversation) => {
     // selectConversation fetches the full conversation with bot_id
@@ -109,9 +112,8 @@ export function ConversationList() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (confirm('Bu sohbeti silmek istiyor musunuz?')) {
-                        deleteConversation(conversation.id);
-                      }
+                      setConversationToDelete(conversation.id);
+                      setDeleteModalOpen(true);
                     }}
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded hover:bg-red-100 text-gray-400 hover:text-red-600 transition-colors"
                     title="Sohbeti sil"
@@ -124,6 +126,24 @@ export function ConversationList() {
           </div>
         </div>
       ))}
+
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setConversationToDelete(null);
+        }}
+        onConfirm={() => {
+          if (conversationToDelete) {
+            deleteConversation(conversationToDelete);
+          }
+          setDeleteModalOpen(false);
+          setConversationToDelete(null);
+        }}
+        title="Sohbeti Sil"
+        message="Bu sohbeti silmek istediğinizden emin misiniz?"
+        confirmText="Sil"
+      />
     </div>
   );
 }
