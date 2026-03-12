@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { AgentCard } from '../components/home';
-import { useAuthStore, useAgentStore } from '../stores';
+import { useAuthStore, useAgentStore, useChatStore } from '../stores';
 import type { Agent } from '../types';
 
 export function HomePage() {
@@ -11,7 +11,10 @@ export function HomePage() {
   // Filter to show only interactive agents
   const interactiveAgents = agents.filter((agent: Agent) => agent.interactive !== false);
 
+  const { clearCurrentConversation } = useChatStore();
+
   const handleAgentClick = (agent: Agent) => {
+    clearCurrentConversation();
     selectAgent(agent);
     navigate('/chat');
   };
