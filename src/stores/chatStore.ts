@@ -23,6 +23,18 @@ interface ChatState {
   clearCurrentConversation: () => void;
 }
 
+// Helper: move a conversation to the top of the list by updating its updated_at locally
+function bumpConversation(conversations: Conversation[], id: number): Conversation[] {
+  const now = new Date().toISOString();
+  const updated = conversations.map((c) =>
+    c.id === id ? { ...c, updated_at: now } : c
+  );
+  updated.sort((a, b) =>
+    new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime()
+  );
+  return updated;
+}
+
 export const useChatStore = create<ChatState>((set, get) => ({
   conversations: [],
   currentConversation: null,
@@ -35,17 +47,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
   abortController: null,
 
   fetchConversations: async () => {
-    set({ isLoading: true, error: null });
     try {
       const conversations = await conversationsApi.list();
-      // Sort by created_at descending
+      // Sort by updated_at descending (fallback to created_at)
       conversations.sort((a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime()
       );
-      set({ conversations, isLoading: false });
+      set({ conversations });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to fetch conversations';
-      set({ error: message, isLoading: false });
+      set({ error: message });
     }
   },
 
@@ -181,6 +192,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
             streamingContent: '',
             streamingThinking: '',
             abortController: null,
+            conversations: bumpConversation(state.conversations, chatHistoryId),
           }));
         } else {
           set({
