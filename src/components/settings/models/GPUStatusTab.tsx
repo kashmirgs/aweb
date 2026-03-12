@@ -160,7 +160,7 @@ export function GPUStatusTab() {
               {gpu.instances && gpu.instances.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <h4 className="text-sm font-medium text-gray-700 mb-2">
-                    Yuklu Instance&apos;lar
+                    Yüklü Dağıtımlar
                   </h4>
                   <div className="space-y-2">
                     {gpu.instances.map((instance) => {
@@ -187,7 +187,7 @@ export function GPUStatusTab() {
               {(!gpu.instances || gpu.instances.length === 0) && (
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <p className="text-sm text-gray-400 text-center">
-                    Yuklu instance yok
+                    Yüklü dağıtım yok
                   </p>
                 </div>
               )}

@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { useLocalLlmStore } from '../../../stores/localLlmStore';
 import { ModelsTab } from './ModelsTab';
 import { InstancesTab } from './InstancesTab';
-import { GPUStatusTab } from './GPUStatusTab';
 import { cn } from '../../../lib/utils';
 
-type TabType = 'models' | 'instances' | 'gpu';
+type TabType = 'models' | 'instances';
 
 interface Tab {
   id: TabType;
@@ -14,8 +13,7 @@ interface Tab {
 
 const tabs: Tab[] = [
   { id: 'models', label: 'Modeller' },
-  { id: 'instances', label: 'Instancelar' },
-  { id: 'gpu', label: 'GPU Durumu' },
+  { id: 'instances', label: 'Dağıtımlar' },
 ];
 
 export function ModelManagement() {
@@ -23,37 +21,12 @@ export function ModelManagement() {
   const {
     fetchModels,
     fetchInstances,
-    fetchGPUs,
-    fetchGPUsWithInstances,
-    startMetricsPolling,
-    stopMetricsPolling,
   } = useLocalLlmStore();
 
   useEffect(() => {
-    // Fetch initial data
     fetchModels();
     fetchInstances();
-    fetchGPUs();
-    fetchGPUsWithInstances();
-
-    // Start metrics polling when on GPU tab
-    if (activeTab === 'gpu') {
-      startMetricsPolling(5000);
-    }
-
-    return () => {
-      stopMetricsPolling();
-    };
-  }, [fetchModels, fetchInstances, fetchGPUs, fetchGPUsWithInstances, startMetricsPolling, stopMetricsPolling, activeTab]);
-
-  useEffect(() => {
-    // Start/stop metrics polling based on active tab
-    if (activeTab === 'gpu') {
-      startMetricsPolling(5000);
-    } else {
-      stopMetricsPolling();
-    }
-  }, [activeTab, startMetricsPolling, stopMetricsPolling]);
+  }, [fetchModels, fetchInstances]);
 
   return (
     <div className="p-6 h-full overflow-auto">
@@ -86,7 +59,6 @@ export function ModelManagement() {
       <div className="bg-white rounded-lg shadow">
         {activeTab === 'models' && <ModelsTab />}
         {activeTab === 'instances' && <InstancesTab />}
-        {activeTab === 'gpu' && <GPUStatusTab />}
       </div>
     </div>
   );

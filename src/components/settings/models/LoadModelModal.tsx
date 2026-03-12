@@ -13,7 +13,7 @@ interface LoadModelModalProps {
 }
 
 export function LoadModelModal({ model, onClose }: LoadModelModalProps) {
-  const { gpus, fetchGPUs, createInstance, loadInstance, isSaving, error, clearError } = useLocalLlmStore();
+  const { gpus, fetchGPUs, gpusWithInstances, fetchGPUsWithInstances, createInstance, loadInstance, isSaving, error, clearError } = useLocalLlmStore();
 
   const [name, setName] = useState(`${model.model_key}-instance`);
   const [selectedGPUs, setSelectedGPUs] = useState<number[]>([]);
@@ -25,8 +25,20 @@ export function LoadModelModal({ model, onClose }: LoadModelModalProps) {
   useEffect(() => {
     clearError();
     fetchGPUs();
+    fetchGPUsWithInstances();
     loadSuggestion();
-  }, [fetchGPUs, clearError]);
+  }, [fetchGPUs, fetchGPUsWithInstances, clearError]);
+
+  // Boş GPU'ları hesapla (instance yüklü olmayan GPU'lar)
+  const availableGPUs = gpusWithInstances.filter(gpu => !gpu.instances || gpu.instances.length === 0);
+
+  // Tek boş GPU varsa otomatik seç
+  useEffect(() => {
+    if (availableGPUs.length === 1 && selectedGPUs.length === 0) {
+      setSelectedGPUs([availableGPUs[0].id]);
+      setTensorParallelSize(1);
+    }
+  }, [availableGPUs.length]);
 
   const loadSuggestion = async () => {
     setIsLoadingSuggestion(true);
@@ -91,7 +103,7 @@ export function LoadModelModal({ model, onClose }: LoadModelModalProps) {
         {/* Instance Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Instance Adi
+            Dağıtım Adı
           </label>
           <input
             type="text"
@@ -102,7 +114,8 @@ export function LoadModelModal({ model, onClose }: LoadModelModalProps) {
           />
         </div>
 
-        {/* GPU Selection */}
+        {/* GPU Selection - Tek boş GPU varsa gizle, otomatik seçilir */}
+        {availableGPUs.length > 1 && (
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-gray-700">
@@ -169,6 +182,7 @@ export function LoadModelModal({ model, onClose }: LoadModelModalProps) {
             </p>
           )}
         </div>
+        )}
 
         {/* Tensor Parallel Size */}
         <div>

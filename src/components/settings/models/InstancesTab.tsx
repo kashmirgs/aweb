@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Play, Square, Trash2, Loader2 } from 'lucide-react';
 import { useLocalLlmStore } from '../../../stores/localLlmStore';
 import { Button } from '../../common/Button';
@@ -32,10 +32,18 @@ export function InstancesTab() {
     unloadInstance,
     deleteInstance,
     fetchInstances,
+    gpusWithInstances,
+    fetchGPUsWithInstances,
   } = useLocalLlmStore();
 
   const [instanceToDelete, setInstanceToDelete] = useState<LocalLLMInstance | null>(null);
   const [actionInProgress, setActionInProgress] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetchGPUsWithInstances();
+  }, [fetchGPUsWithInstances]);
+
+  const hasAvailableGPU = gpusWithInstances.some(gpu => !gpu.instances || gpu.instances.length === 0);
 
   const handleLoad = async (instance: LocalLLMInstance) => {
     setActionInProgress(instance.id);
@@ -69,7 +77,7 @@ export function InstancesTab() {
   const columns: Column<LocalLLMInstance>[] = [
     {
       key: 'name',
-      header: 'Instance Adı',
+      header: 'Dağıtım Adı',
       render: (instance) => (
         <span className="font-medium">
           {instance.name || `Instance #${instance.id}`}
@@ -164,8 +172,8 @@ export function InstancesTab() {
                   e.stopPropagation();
                   handleLoad(instance);
                 }}
-                disabled={!isActionable || isCurrentAction}
-                title="Yükle"
+                disabled={!isActionable || isCurrentAction || !hasAvailableGPU}
+                title={!hasAvailableGPU ? 'Boşta GPU yok' : 'Yükle'}
               >
                 {isCurrentAction ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -206,7 +214,7 @@ export function InstancesTab() {
         data={instances}
         keyExtractor={(instance) => instance.id}
         isLoading={isLoadingInstances}
-        emptyMessage="Henüz instance oluşturulmamış"
+        emptyMessage="Henüz dağıtım oluşturulmamış"
       />
 
       {/* Delete Confirmation */}
@@ -214,8 +222,8 @@ export function InstancesTab() {
         isOpen={!!instanceToDelete}
         onClose={() => setInstanceToDelete(null)}
         onConfirm={handleDelete}
-        title="Instance Sil"
-        message={`"${instanceToDelete?.name || `Instance #${instanceToDelete?.id}`}" instance'ini silmek istediginize emin misiniz?`}
+        title="Dağıtımı Sil"
+        message={`"${instanceToDelete?.name || `Instance #${instanceToDelete?.id}`}" dağıtımını silmek istediğinize emin misiniz?`}
         confirmText="Sil"
         isLoading={isSaving}
         variant="danger"
