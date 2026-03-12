@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Bot, Cpu, Users, UsersRound } from 'lucide-react';
+import { Bot, Cpu, Users, UsersRound, ScrollText } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { usePermissionStore } from '../../stores/permissionStore';
 
@@ -15,6 +15,7 @@ const navItems: NavItem[] = [
   { to: '/settings/models', label: 'Model Yonetimi', icon: <Cpu className="h-5 w-5" />, superAdminOnly: true },
   { to: '/settings/users', label: 'Kullanıcılar', icon: <Users className="h-5 w-5" />, superAdminOnly: true },
   { to: '/settings/groups', label: 'Kullanıcı Grupları', icon: <UsersRound className="h-5 w-5" />, superAdminOnly: true },
+  { to: '/settings/logs', label: 'Kayıtlar', icon: <ScrollText className="h-5 w-5" />, superAdminOnly: true },
 ];
 
 export function SettingsSidebar() {

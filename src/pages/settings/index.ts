@@ -8,3 +8,4 @@ export { UserEditPage } from './UserEditPage';
 export { GroupListPage } from './GroupListPage';
 export { GroupCreatePage } from './GroupCreatePage';
 export { GroupEditPage } from './GroupEditPage';
+export { LogsPage } from './LogsPage';

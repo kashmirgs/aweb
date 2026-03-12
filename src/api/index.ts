@@ -6,3 +6,4 @@ export { default as chatApi } from './chat';
 export { default as permissionsApi, llmModelsApi } from './permissions';
 export { localLlmApi } from './localLlm';
 export { default as adminApi } from './admin';
+export { logsApi } from './logs';

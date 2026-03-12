@@ -5,3 +5,4 @@ export * from './attachment';
 export * from './permission';
 export * from './localLlm';
 export * from './user';
+export * from './log';

@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from './components/layout';
-import { LoginPage, ChatPage, HomePage, AgentListPage, AgentEditPage, AgentCreatePage, ModelManagementPage, UserListPage, UserCreatePage, UserEditPage, GroupListPage, GroupCreatePage, GroupEditPage } from './pages';
+import { LoginPage, ChatPage, HomePage, AgentListPage, AgentEditPage, AgentCreatePage, ModelManagementPage, UserListPage, UserCreatePage, UserEditPage, GroupListPage, GroupCreatePage, GroupEditPage, LogsPage } from './pages';
 
 function App() {
   return (
@@ -22,6 +22,7 @@ function App() {
             <Route path="groups/new" element={<GroupCreatePage />} />
             <Route path="groups/:id" element={<GroupEditPage />} />
             <Route path="models" element={<ModelManagementPage />} />
+            <Route path="logs" element={<LogsPage />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
