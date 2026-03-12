@@ -137,7 +137,6 @@ export function InstancesTab() {
     {
       key: 'actions',
       header: 'İşlemler',
-      className: 'text-right',
       render: (instance) => {
         // Check both runtime_state (API) and status (optimistic updates)
         const state = instance.runtime_state || instance.status || '';
@@ -146,7 +145,7 @@ export function InstancesTab() {
         const isCurrentAction = actionInProgress === instance.id;
 
         return (
-          <div className="flex items-center justify-end gap-2">
+          <div className="flex items-center gap-2">
             {isLoaded ? (
               <Button
                 variant="ghost"

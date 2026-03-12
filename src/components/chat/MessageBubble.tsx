@@ -163,7 +163,7 @@ export function MessageBubble({ message, isStreaming, isStreamingThinking }: Mes
                     <ChevronRight className="h-3.5 w-3.5" />
                   )}
                   <Brain className="h-3.5 w-3.5" />
-                  <span>{isThinkingExpanded ? 'Hide thinking' : 'Show thinking'}</span>
+                  <span>{isThinkingExpanded ? 'Düşünce sürecini gizle' : 'Düşünce sürecini göster'}</span>
                 </button>
                 {isThinkingExpanded && (
                   <div className="bg-purple-50 border border-purple-100 rounded-lg px-3 py-2 text-sm text-gray-600 italic">

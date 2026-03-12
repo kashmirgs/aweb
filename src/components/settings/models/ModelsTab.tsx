@@ -92,9 +92,8 @@ export function ModelsTab() {
     {
       key: 'actions',
       header: 'İşlemler',
-      className: 'text-right',
       render: (model) => (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"

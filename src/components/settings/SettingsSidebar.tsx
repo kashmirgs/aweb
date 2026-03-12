@@ -12,7 +12,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { to: '/settings/agents', label: 'Ajanlar', icon: <Bot className="h-5 w-5" /> },
-  { to: '/settings/models', label: 'Model Yonetimi', icon: <Cpu className="h-5 w-5" />, superAdminOnly: true },
+  { to: '/settings/models', label: 'Model Yönetimi', icon: <Cpu className="h-5 w-5" />, superAdminOnly: true },
   { to: '/settings/users', label: 'Kullanıcılar', icon: <Users className="h-5 w-5" />, superAdminOnly: true },
   { to: '/settings/groups', label: 'Kullanıcı Grupları', icon: <UsersRound className="h-5 w-5" />, superAdminOnly: true },
   { to: '/settings/logs', label: 'Kayıtlar', icon: <ScrollText className="h-5 w-5" />, superAdminOnly: true },

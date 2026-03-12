@@ -31,8 +31,8 @@ export function ModelManagement() {
   return (
     <div className="p-6 h-full overflow-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Model Yonetimi</h1>
-        <p className="text-gray-600 mt-1">Local LLM modellerini yonetin</p>
+        <h1 className="text-2xl font-bold text-gray-900">Model Yönetimi</h1>
+        <p className="text-gray-600 mt-1">Yerel LLM modellerini yönetin</p>
       </div>
 
       {/* Tabs */}

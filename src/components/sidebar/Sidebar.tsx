@@ -110,7 +110,7 @@ export function Sidebar({ isOpen, onToggle, mode = 'chat' }: SidebarProps) {
                       }
                     >
                       <Cpu className="h-5 w-5" />
-                      Model Yonetimi
+                      Model Yönetimi
                     </NavLink>
                     <NavLink
                       to="/settings/users"
