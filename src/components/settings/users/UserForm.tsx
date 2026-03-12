@@ -116,6 +116,19 @@ export function UserForm({ userId, isNew = false }: UserFormProps) {
       errors.password = 'Şifre zorunludur';
     }
 
+    if (formData.password?.trim()) {
+      const pwd = formData.password.trim();
+      if (pwd.length < 8) {
+        errors.password = 'Şifre en az 8 karakter olmalıdır';
+      } else if (!/[A-Z]/.test(pwd)) {
+        errors.password = 'Şifre en az bir büyük harf içermelidir';
+      } else if (!/[a-z]/.test(pwd)) {
+        errors.password = 'Şifre en az bir küçük harf içermelidir';
+      } else if (!/[^a-zA-Z0-9]/.test(pwd)) {
+        errors.password = 'Şifre en az bir özel karakter içermelidir';
+      }
+    }
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -153,7 +166,6 @@ export function UserForm({ userId, isNew = false }: UserFormProps) {
         department_name: formData.department_name || undefined,
         phone: formData.phone || undefined,
         foreign_id: formData.foreign_id || undefined,
-        ad_user: formData.ad_user,
       };
       // Sadece şifre girilmişse ekle
       if (formData.password?.trim()) {

@@ -134,8 +134,23 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
       return;
     }
 
-    if (newPassword.length < 4) {
-      setPasswordError('Yeni şifre en az 4 karakter olmalıdır.');
+    if (newPassword.length < 8) {
+      setPasswordError('Yeni şifre en az 8 karakter olmalıdır.');
+      return;
+    }
+
+    if (!/[A-Z]/.test(newPassword)) {
+      setPasswordError('Şifre en az bir büyük harf içermelidir.');
+      return;
+    }
+
+    if (!/[a-z]/.test(newPassword)) {
+      setPasswordError('Şifre en az bir küçük harf içermelidir.');
+      return;
+    }
+
+    if (!/[^a-zA-Z0-9]/.test(newPassword)) {
+      setPasswordError('Şifre en az bir özel karakter içermelidir.');
       return;
     }
 

@@ -20,5 +20,4 @@ export interface UpdateUserRequest {
   department_name?: string;
   phone?: string;
   foreign_id?: string;
-  ad_user?: boolean;
 }
