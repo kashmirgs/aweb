@@ -44,12 +44,6 @@ export function InstancesTab() {
     fetchGPUsWithInstances();
   }, [fetchGPUsWithInstances]);
 
-  const hasAvailableGPU = gpusWithInstances.some(gpu =>
-    !gpu.instances || gpu.instances.every(inst => {
-      const s = inst.runtime_state || inst.status || 'STOPPED';
-      return ['STOPPED', 'UNLOADED', 'ERROR', 'error'].includes(s);
-    })
-  );
 
   const handleLoad = async (instance: LocalLLMInstance) => {
     setActionInProgress(instance.id);
