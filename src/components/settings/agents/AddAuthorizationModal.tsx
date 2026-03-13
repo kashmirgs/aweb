@@ -6,7 +6,7 @@ import { Button } from '../../common/Button';
 import { adminApi } from '../../../api/admin';
 import { permissionsApi } from '../../../api/permissions';
 import type { User } from '../../../types';
-import type { Group, Scope } from '../../../types/permission';
+import type { Group } from '../../../types/permission';
 
 interface AddAuthorizationModalProps {
   isOpen: boolean;
@@ -29,7 +29,6 @@ export function AddAuthorizationModal({
 }: AddAuthorizationModalProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [, setScopes] = useState<Scope[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,11 +49,6 @@ export function AddAuthorizationModal({
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [scopesData] = await Promise.all([
-        adminApi.getAllScopes(),
-      ]);
-      setScopes(scopesData);
-
       if (type === 'user') {
         const usersData = await adminApi.getAllUsers();
         setUsers(usersData);
