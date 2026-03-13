@@ -19,6 +19,9 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine
 
+# Add .mjs MIME type (for pdf.worker etc.)
+RUN sed -i 's|application/javascript\s*js;|application/javascript js mjs;|' /etc/nginx/mime.types
+
 # Copy built assets from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
