@@ -30,7 +30,12 @@ export function LoadModelModal({ model, onClose }: LoadModelModalProps) {
   }, [fetchGPUs, fetchGPUsWithInstances, clearError]);
 
   // Boş GPU'ları hesapla (instance yüklü olmayan GPU'lar)
-  const availableGPUs = gpusWithInstances.filter(gpu => !gpu.instances || gpu.instances.length === 0);
+  const availableGPUs = gpusWithInstances.filter(gpu =>
+    !gpu.instances || gpu.instances.every(inst => {
+      const s = inst.runtime_state || inst.status || 'STOPPED';
+      return ['STOPPED', 'UNLOADED', 'ERROR', 'error'].includes(s);
+    })
+  );
 
   // Tek boş GPU varsa otomatik seç
   useEffect(() => {

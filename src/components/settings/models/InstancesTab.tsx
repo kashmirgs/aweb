@@ -12,6 +12,7 @@ const statusLabels: Record<string, { label: string; color: string }> = {
   READY: { label: 'Aktif', color: 'bg-green-100 text-green-700' },
   LOADING: { label: 'Yükleniyor', color: 'bg-blue-100 text-blue-700' },
   STOPPED: { label: 'Durduruldu', color: 'bg-gray-100 text-gray-700' },
+  UNLOADED: { label: 'Durduruldu', color: 'bg-gray-100 text-gray-700' },
   ERROR: { label: 'Hata', color: 'bg-red-100 text-red-700' },
   // Local optimistic update values (lowercase)
   pending: { label: 'Bekliyor', color: 'bg-gray-100 text-gray-700' },
@@ -43,7 +44,12 @@ export function InstancesTab() {
     fetchGPUsWithInstances();
   }, [fetchGPUsWithInstances]);
 
-  const hasAvailableGPU = gpusWithInstances.some(gpu => !gpu.instances || gpu.instances.length === 0);
+  const hasAvailableGPU = gpusWithInstances.some(gpu =>
+    !gpu.instances || gpu.instances.every(inst => {
+      const s = inst.runtime_state || inst.status || 'STOPPED';
+      return ['STOPPED', 'UNLOADED', 'ERROR', 'error'].includes(s);
+    })
+  );
 
   const handleLoad = async (instance: LocalLLMInstance) => {
     setActionInProgress(instance.id);
@@ -144,6 +150,17 @@ export function InstancesTab() {
         const isActionable = !['LOADING', 'loading', 'unloading'].includes(state);
         const isCurrentAction = actionInProgress === instance.id;
 
+        // Check if this instance's GPUs are available (no other ACTIVE instance using them)
+        const instanceGPUsAvailable = instance.gpu_ids.every(gpuId => {
+          const gpu = gpusWithInstances.find(g => g.id === gpuId);
+          if (!gpu || !gpu.instances) return true;
+          return gpu.instances.every(inst => {
+            if ((inst as any).instance_id === instance.id || inst.id === instance.id) return true; // skip self
+            const s = inst.runtime_state || inst.status || 'STOPPED';
+            return ['STOPPED', 'UNLOADED', 'ERROR', 'error'].includes(s);
+          });
+        });
+
         return (
           <div className="flex items-center gap-2">
             {isLoaded ? (
@@ -171,8 +188,8 @@ export function InstancesTab() {
                   e.stopPropagation();
                   handleLoad(instance);
                 }}
-                disabled={!isActionable || isCurrentAction || !hasAvailableGPU}
-                title={!hasAvailableGPU ? 'Boşta GPU yok' : 'Yükle'}
+                disabled={!isActionable || isCurrentAction || !instanceGPUsAvailable}
+                title={!instanceGPUsAvailable ? 'GPU meşgul' : 'Yükle'}
               >
                 {isCurrentAction ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
